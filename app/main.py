@@ -1,5 +1,7 @@
 import logging
 from fastapi import FastAPI, Query, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.core.config import get_settings
 from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta
 from app.services.search import fetch_search_urls
@@ -24,7 +26,15 @@ app = FastAPI(
 )
 
 
-@app.get("/", tags=["health"])
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def serve_ui():
+    return FileResponse("static/index.html")
+
+
+@app.get("/api/health", tags=["health"])
 def health():
     settings = get_settings()
     return {
