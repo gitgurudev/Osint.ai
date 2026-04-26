@@ -5,11 +5,12 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from app.core.config import get_settings
-from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta
+from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta, ConfirmedAccount
 from app.services.search import fetch_search_urls
 from app.services.scraper import scrape_page
 from app.services.analyzer import run_analysis
 from app.services.llm import enhance_with_llm
+from app.services.holehe_checker import check_email as holehe_check, TOTAL_PLATFORMS
 from app.utils.helpers import is_email, parse_email
 
 logging.basicConfig(
@@ -19,8 +20,8 @@ logging.basicConfig(
 
 app = FastAPI(
     title="OSINT AI — Digital Intelligence Engine",
-    description="Accepts name, username, or email. Search -> Scrape -> Analyze -> GPT-4o.",
-    version="6.0.0",
+    description="Accepts name, username, or email. Search -> Holehe -> Scrape -> Analyze -> GPT-4o.",
+    version="7.0.0",
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -36,37 +37,76 @@ def health():
     settings = get_settings()
     return {
         "status": "ok",
-        "version": "6.0.0",
+        "version": "7.0.0",
         "llm_enabled": settings.llm_enabled,
         "model": settings.openai_model if settings.llm_enabled else "rule-based only",
+        "holehe_platforms": TOTAL_PLATFORMS,
     }
 
 
-# ── SSE helper ────────────────────────────────────────────────────────────────
-
 def _evt(data: dict) -> str:
-    """Format a dict as an SSE data line."""
     return f"data: {json.dumps(data)}\n\n"
 
 
-# ── Streaming search endpoint (used by UI) ────────────────────────────────────
-
 @app.get("/search/stream", tags=["osint"])
-async def search_stream(
-    query: str = Query(..., min_length=2, max_length=200)
-):
-    """
-    Server-Sent Events endpoint.
-    Emits real-time progress as each pipeline stage completes.
-    """
+async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
+    """SSE endpoint — emits real-time pipeline progress to the UI."""
+
     settings = get_settings()
 
     async def pipeline():
         # ── Email detection ───────────────────────────────────────
-        email_meta_raw = None
+        email_meta_raw  = None
+        confirmed_raw   = []
+
         if is_email(query):
-            email_meta_raw = await asyncio.to_thread(parse_email, query)
+            email_meta_raw = parse_email(query)
             yield _evt({"type": "email_detected", "meta": email_meta_raw})
+
+            # ── Stage 0: Holehe (email only) ─────────────────────
+            yield _evt({
+                "type": "stage", "stage": "holehe",
+                "message": f"Checking {TOTAL_PLATFORMS} platforms...",
+                "total": TOTAL_PLATFORMS,
+            })
+
+            # Progress callback — yields an SSE event after each batch
+            async def on_holehe_progress(checked, total, found):
+                nonlocal confirmed_raw
+                confirmed_raw = found
+                yield_queue.append(_evt({
+                    "type": "holehe_progress",
+                    "checked": checked,
+                    "total": total,
+                    "found": len(found),
+                    "latest": [r["name"] for r in found[-3:]],  # last 3 found
+                }))
+
+            # We can't yield inside a callback, so we use a queue
+            yield_queue: list[str] = []
+
+            confirmed_raw = await holehe_check(query, on_progress=on_holehe_progress)
+
+            # Flush queued progress events
+            for evt in yield_queue:
+                yield evt
+
+            yield _evt({
+                "type": "stage_done", "stage": "holehe",
+                "message": f"Found {len(confirmed_raw)} confirmed accounts on {TOTAL_PLATFORMS} platforms",
+                "count": len(confirmed_raw),
+            })
+
+            # Emit each confirmed account so UI can show them as they arrive
+            for acc in confirmed_raw:
+                yield _evt({
+                    "type": "confirmed_account",
+                    "name": acc.get("name", ""),
+                    "domain": acc.get("domain", ""),
+                })
+        else:
+            yield _evt({"type": "stage_skip", "stage": "holehe",
+                        "message": "Email not detected — skipped"})
 
         # ── Stage 1: Search ───────────────────────────────────────
         yield _evt({"type": "stage", "stage": "search",
@@ -82,7 +122,7 @@ async def search_stream(
         yield _evt({"type": "stage_done", "stage": "search",
                     "message": f"Found {len(urls)} URLs"})
 
-        # ── Stage 2: Scrape (per-URL progress) ───────────────────
+        # ── Stage 2: Scrape ───────────────────────────────────────
         yield _evt({"type": "stage", "stage": "scrape",
                     "message": f"Scraping {len(urls)} pages...",
                     "total": len(urls)})
@@ -94,16 +134,12 @@ async def search_stream(
             if ok:
                 scraped.append({"url": url, "content": content})
             yield _evt({
-                "type": "scrape_progress",
-                "done": i + 1,
-                "total": len(urls),
-                "url": url,
-                "success": ok,
+                "type": "scrape_progress", "done": i + 1,
+                "total": len(urls), "url": url, "success": ok,
             })
 
         if not scraped:
-            yield _evt({"type": "error",
-                        "message": "All pages failed to load."})
+            yield _evt({"type": "error", "message": "All pages failed to load."})
             return
 
         yield _evt({"type": "stage_done", "stage": "scrape",
@@ -140,17 +176,27 @@ async def search_stream(
 
         # ── Final result ──────────────────────────────────────────
         llm_enhanced = llm_result is not None
-        summary  = llm_result.get("summary")  if llm_enhanced else None
-        insights = (llm_result.get("insights") or rule_result["insights"]) if llm_enhanced else rule_result["insights"]
+        summary  = llm_result.get("summary") if llm_enhanced else None
+        insights = (llm_result.get("insights") or rule_result["insights"]) \
+                   if llm_enhanced else rule_result["insights"]
+
+        confirmed_accounts = [
+            ConfirmedAccount(
+                name=r.get("name", ""),
+                domain=r.get("domain", ""),
+            )
+            for r in confirmed_raw
+        ]
 
         report = OSINTReport(
             query=query,
             llm_enhanced=llm_enhanced,
             summary=summary,
             email_meta=EmailMeta(**email_meta_raw) if email_meta_raw else None,
+            confirmed_accounts=confirmed_accounts,
             profiles_found=rule_result["profiles_found"],
             ranked_sources=[RankedSource(**s) for s in rule_result["ranked_sources"]],
-            entities=[Entity(**e)            for e in rule_result["entities"]],
+            entities=[Entity(**e) for e in rule_result["entities"]],
             insights=insights,
         )
 
@@ -163,14 +209,12 @@ async def search_stream(
     )
 
 
-# ── JSON endpoint (kept for API / curl usage) ─────────────────────────────────
-
 @app.get("/search", response_model=OSINTReport, tags=["osint"])
-async def search(
-    query: str = Query(..., min_length=2, max_length=200)
-):
-    settings = get_settings()
-    email_meta_raw = parse_email(query) if is_email(query) else None
+async def search(query: str = Query(..., min_length=2, max_length=200)):
+    """JSON endpoint for API / curl usage."""
+    settings        = get_settings()
+    email_meta_raw  = parse_email(query) if is_email(query) else None
+    confirmed_raw   = await holehe_check(query) if email_meta_raw else []
 
     urls = await asyncio.to_thread(fetch_search_urls, query)
     if not urls:
@@ -194,8 +238,10 @@ async def search(
         llm_enhanced=llm_enhanced,
         summary=llm_result.get("summary") if llm_enhanced else None,
         email_meta=EmailMeta(**email_meta_raw) if email_meta_raw else None,
+        confirmed_accounts=[ConfirmedAccount(name=r.get("name",""), domain=r.get("domain",""))
+                            for r in confirmed_raw],
         profiles_found=rule_result["profiles_found"],
         ranked_sources=[RankedSource(**s) for s in rule_result["ranked_sources"]],
-        entities=[Entity(**e)            for e in rule_result["entities"]],
+        entities=[Entity(**e) for e in rule_result["entities"]],
         insights=(llm_result.get("insights") or rule_result["insights"]) if llm_enhanced else rule_result["insights"],
     )

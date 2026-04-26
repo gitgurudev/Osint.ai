@@ -170,7 +170,7 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
-    /* Scrape progress bar */
+    /* Progress bars (scrape + holehe) */
     .scrape-bar-wrap {
       margin-top: 6px; background: var(--border);
       border-radius: 3px; height: 4px; overflow: hidden;
@@ -180,6 +180,37 @@
       border-radius: 3px; transition: width .3s ease;
       width: 0%;
     }
+    .holehe-bar-wrap {
+      margin-top: 6px; background: var(--border);
+      border-radius: 3px; height: 4px; overflow: hidden;
+    }
+    .holehe-bar {
+      height: 100%; background: var(--green);
+      border-radius: 3px; transition: width .3s ease;
+      width: 0%;
+    }
+    /* Live found-accounts mini-list during holehe scan */
+    .holehe-live {
+      margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .holehe-chip {
+      font-size: 11px; background: rgba(63,185,80,.12);
+      color: var(--green); border: 1px solid rgba(63,185,80,.3);
+      border-radius: 20px; padding: 2px 8px;
+    }
+    /* Confirmed accounts card */
+    .confirmed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+    }
+    .confirmed-item {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid rgba(63,185,80,.25);
+      border-radius: var(--radius); padding: 9px 12px;
+      font-size: 13px;
+    }
+    .confirmed-check { color: var(--green); font-size: 14px; flex-shrink: 0; }
 
     /* ── Error ── */
     #error-box {
@@ -339,15 +370,26 @@
       <span id="pipeline-title">Running pipeline...</span>
     </div>
     <ul class="steps" id="steps-list">
-      <li class="step" id="step-search">
+      <li class="step" id="step-holehe">
         <div class="step-icon">1</div>
+        <div class="step-body">
+          <div class="step-label">Holehe Platform Check</div>
+          <div class="step-detail" id="detail-holehe">Waiting...</div>
+          <div class="holehe-bar-wrap" id="holehe-bar-wrap" style="display:none">
+            <div class="holehe-bar" id="holehe-bar"></div>
+          </div>
+          <div class="holehe-live" id="holehe-live"></div>
+        </div>
+      </li>
+      <li class="step" id="step-search">
+        <div class="step-icon">2</div>
         <div class="step-body">
           <div class="step-label">DuckDuckGo Search</div>
           <div class="step-detail" id="detail-search">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-scrape">
-        <div class="step-icon">2</div>
+        <div class="step-icon">3</div>
         <div class="step-body">
           <div class="step-label">Scraping Pages</div>
           <div class="step-detail" id="detail-scrape">Waiting...</div>
@@ -357,14 +399,14 @@
         </div>
       </li>
       <li class="step" id="step-analyze">
-        <div class="step-icon">3</div>
+        <div class="step-icon">4</div>
         <div class="step-body">
           <div class="step-label">Rule-based Analysis</div>
           <div class="step-detail" id="detail-analyze">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-llm">
-        <div class="step-icon">4</div>
+        <div class="step-icon">5</div>
         <div class="step-body">
           <div class="step-label">GPT-4o Enhancement</div>
           <div class="step-detail" id="detail-llm">Waiting...</div>
@@ -396,6 +438,14 @@
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-email"></div>
+  </div>
+
+  <div class="card" id="card-confirmed">
+    <div class="card-header" onclick="toggleCard('card-confirmed')">
+      <div class="card-title"><span>✔</span> Confirmed Accounts <span id="confirmed-badge" class="badge badge-green" style="margin-left:4px;display:none"></span></div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="card-body" id="body-confirmed"></div>
   </div>
 
   <div class="card" id="card-insights">
@@ -435,7 +485,7 @@
   </div>
 </div>
 
-<footer>OSINT AI v6.0 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
+<footer>OSINT AI v7.0 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
 
 <script>
   let lastResult = null;
@@ -464,13 +514,16 @@
 
   // ── Reset pipeline UI ────────────────────────────────────────────
   function resetPipeline() {
-    ['search','scrape','analyze','llm'].forEach(s => {
+    ['holehe','search','scrape','analyze','llm'].forEach(s => {
       const el = document.getElementById('step-' + s);
       el.className = 'step';
       document.getElementById('detail-' + s).textContent = 'Waiting...';
     });
     document.getElementById('scrape-bar-wrap').style.display = 'none';
     document.getElementById('scrape-bar').style.width = '0%';
+    document.getElementById('holehe-bar-wrap').style.display = 'none';
+    document.getElementById('holehe-bar').style.width = '0%';
+    document.getElementById('holehe-live').innerHTML = '';
     document.getElementById('pipeline-title').textContent = 'Running pipeline...';
     document.getElementById('pipeline-spinner').style.display = '';
   }
@@ -533,6 +586,9 @@
         if (d.stage === 'scrape' && d.total) {
           document.getElementById('scrape-bar-wrap').style.display = 'block';
         }
+        if (d.stage === 'holehe' && d.total) {
+          document.getElementById('holehe-bar-wrap').style.display = 'block';
+        }
       }
 
       else if (d.type === 'stage_done') {
@@ -541,6 +597,29 @@
 
       else if (d.type === 'stage_skip') {
         setStepSkip(d.stage, d.message);
+      }
+
+      else if (d.type === 'holehe_progress') {
+        const pct = Math.round((d.checked / d.total) * 100);
+        document.getElementById('holehe-bar').style.width = pct + '%';
+        document.getElementById('detail-holehe').textContent =
+          `${d.checked}/${d.total} checked · ${d.found} found`;
+        if (d.latest && d.latest.length) {
+          const live = document.getElementById('holehe-live');
+          d.latest.forEach(name => {
+            if (!document.querySelector(`.holehe-chip[data-name="${CSS.escape(name)}"]`)) {
+              const chip = document.createElement('span');
+              chip.className = 'holehe-chip';
+              chip.dataset.name = name;
+              chip.textContent = name;
+              live.appendChild(chip);
+            }
+          });
+        }
+      }
+
+      else if (d.type === 'confirmed_account') {
+        // nothing extra — final list rendered from result event
       }
 
       else if (d.type === 'scrape_progress') {
@@ -552,8 +631,7 @@
       }
 
       else if (d.type === 'error') {
-        // Find which step is active and mark it as error
-        ['search','scrape','analyze','llm'].forEach(s => {
+        ['holehe','search','scrape','analyze','llm'].forEach(s => {
           if (document.getElementById('step-'+s).classList.contains('active')) {
             setStepError(s, d.message);
           }
@@ -604,7 +682,11 @@
       </span>
     `;
 
+    const confirmedCount = (d.confirmed_accounts || []).length;
+    const statsHtml = confirmedCount > 0
+      ? `<div class="stat-card"><div class="stat-num" style="color:var(--green)">${confirmedCount}</div><div class="stat-label">Confirmed Accounts</div></div>` : '';
     document.getElementById('stats-row').innerHTML = `
+      ${statsHtml}
       <div class="stat-card"><div class="stat-num">${d.profiles_found.length}</div><div class="stat-label">Profiles Found</div></div>
       <div class="stat-card"><div class="stat-num">${d.ranked_sources.length}</div><div class="stat-label">Sources Scraped</div></div>
       <div class="stat-card"><div class="stat-num">${d.entities.length}</div><div class="stat-label">Identity Clusters</div></div>
@@ -639,6 +721,28 @@
         </div>`;
     } else {
       document.getElementById('card-email').style.display = 'none';
+    }
+
+    // Confirmed accounts (holehe)
+    const accounts = d.confirmed_accounts || [];
+    if (accounts.length) {
+      document.getElementById('card-confirmed').style.display = '';
+      const badge = document.getElementById('confirmed-badge');
+      badge.textContent = accounts.length + ' platforms';
+      badge.style.display = '';
+      document.getElementById('body-confirmed').innerHTML =
+        `<div class="confirmed-grid">${accounts.map(a => `
+          <div class="confirmed-item">
+            <span class="confirmed-check">✔</span>
+            <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(a.domain)}&sz=16"
+                 width="16" height="16" onerror="this.style.display='none'" />
+            <div>
+              <div style="font-weight:600">${esc(a.name)}</div>
+              <div style="font-size:11px;color:var(--muted)">${esc(a.domain)}</div>
+            </div>
+          </div>`).join('')}</div>`;
+    } else {
+      document.getElementById('card-confirmed').style.display = 'none';
     }
 
     // Insights

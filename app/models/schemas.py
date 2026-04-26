@@ -22,11 +22,18 @@ class EmailMeta(BaseModel):
     account_type: str   # personal | corporate | educational
 
 
+class ConfirmedAccount(BaseModel):
+    name: str            # Platform name e.g. "GitHub"
+    domain: str          # e.g. "github.com"
+    exists: bool = True
+
+
 class OSINTReport(BaseModel):
     query: str
     llm_enhanced: bool
     summary: Optional[str] = None
-    email_meta: Optional[EmailMeta] = None   # populated only when input is an email
+    email_meta: Optional[EmailMeta] = None
+    confirmed_accounts: List[ConfirmedAccount] = []   # from holehe (email only)
     profiles_found: List[str]
     ranked_sources: List[RankedSource]
     entities: List[Entity]
