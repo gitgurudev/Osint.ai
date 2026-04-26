@@ -35,13 +35,34 @@ class GoogleFootprint(BaseModel):
     photos_url: Optional[str] = None
 
 
+class Breach(BaseModel):
+    name: str
+    title: str
+    domain: str
+    breach_date: str
+    pwn_count: int
+    data_classes: List[str]
+    is_verified: bool
+    is_sensitive: bool
+    severity: str   # "high" | "medium"
+
+
+class HIBPResult(BaseModel):
+    ok: bool = True
+    found: bool = False
+    count: int = 0
+    breaches: List[Breach] = []
+    error: Optional[str] = None
+
+
 class OSINTReport(BaseModel):
     query: str
     llm_enhanced: bool
     summary: Optional[str] = None
     email_meta: Optional[EmailMeta] = None
-    confirmed_accounts: List[ConfirmedAccount] = []   # from holehe (email only)
+    confirmed_accounts: List[ConfirmedAccount] = []
     google_footprint: Optional[GoogleFootprint] = None
+    hibp_result: Optional[HIBPResult] = None
     profiles_found: List[str]
     ranked_sources: List[RankedSource]
     entities: List[Entity]

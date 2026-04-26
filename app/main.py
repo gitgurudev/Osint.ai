@@ -5,13 +5,14 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from app.core.config import get_settings
-from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta, ConfirmedAccount, GoogleFootprint
+from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta, ConfirmedAccount, GoogleFootprint, HIBPResult, Breach
 from app.services.search import fetch_search_urls
 from app.services.scraper import scrape_page
 from app.services.analyzer import run_analysis
 from app.services.llm import enhance_with_llm
 from app.services.holehe_checker import check_email as holehe_check, TOTAL_PLATFORMS
 from app.services.google_footprint import find_google_footprint
+from app.services.hibp_checker import check_breaches
 from app.utils.helpers import is_email, parse_email
 
 logging.basicConfig(
@@ -38,10 +39,11 @@ def health():
     settings = get_settings()
     return {
         "status": "ok",
-        "version": "7.0.0",
+        "version": "8.0.0",
         "llm_enabled": settings.llm_enabled,
         "model": settings.openai_model if settings.llm_enabled else "rule-based only",
         "holehe_platforms": TOTAL_PLATFORMS,
+        "hibp_enabled": settings.hibp_enabled,
     }
 
 
@@ -60,6 +62,7 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
         email_meta_raw  = None
         confirmed_raw   = []
         google_fp_raw   = None
+        hibp_raw        = None
 
         if is_email(query):
             email_meta_raw = parse_email(query)
@@ -122,10 +125,36 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
                 yield _evt({"type": "stage_skip", "stage": "google",
                             "message": "No public Google profile found"})
 
+            # ── Stage 0c: HIBP breach check ───────────────────────
+            if settings.hibp_enabled:
+                yield _evt({"type": "stage", "stage": "hibp",
+                            "message": "Checking Have I Been Pwned..."})
+                hibp_raw = await check_breaches(query, settings.hibp_api_key)
+                if not hibp_raw["ok"]:
+                    yield _evt({"type": "stage_skip", "stage": "hibp",
+                                "message": f"HIBP error: {hibp_raw['error']}"})
+                elif hibp_raw["found"]:
+                    yield _evt({
+                        "type": "stage_done", "stage": "hibp",
+                        "message": f"Found in {hibp_raw['count']} breach(es)!",
+                        "count": hibp_raw["count"],
+                        "severity": "high" if any(
+                            b["severity"] == "high" for b in hibp_raw["breaches"]
+                        ) else "medium",
+                    })
+                else:
+                    yield _evt({"type": "stage_done", "stage": "hibp",
+                                "message": "Clean — no breaches found"})
+            else:
+                yield _evt({"type": "stage_skip", "stage": "hibp",
+                            "message": "No HIBP_API_KEY — skipped"})
+
         else:
             yield _evt({"type": "stage_skip", "stage": "holehe",
                         "message": "Email not detected — skipped"})
             yield _evt({"type": "stage_skip", "stage": "google",
+                        "message": "Email not detected — skipped"})
+            yield _evt({"type": "stage_skip", "stage": "hibp",
                         "message": "Email not detected — skipped"})
 
         # ── Stage 1: Search ───────────────────────────────────────
@@ -208,6 +237,16 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
             for r in confirmed_raw
         ]
 
+        hibp_result = None
+        if hibp_raw:
+            hibp_result = HIBPResult(
+                ok=hibp_raw["ok"],
+                found=hibp_raw["found"],
+                count=hibp_raw["count"],
+                breaches=[Breach(**b) for b in hibp_raw["breaches"]],
+                error=hibp_raw.get("error"),
+            )
+
         report = OSINTReport(
             query=query,
             llm_enhanced=llm_enhanced,
@@ -215,6 +254,7 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
             email_meta=EmailMeta(**email_meta_raw) if email_meta_raw else None,
             confirmed_accounts=confirmed_accounts,
             google_footprint=GoogleFootprint(**google_fp_raw) if google_fp_raw else None,
+            hibp_result=hibp_result,
             profiles_found=rule_result["profiles_found"],
             ranked_sources=[RankedSource(**s) for s in rule_result["ranked_sources"]],
             entities=[Entity(**e) for e in rule_result["entities"]],
@@ -237,6 +277,8 @@ async def search(query: str = Query(..., min_length=2, max_length=200)):
     email_meta_raw  = parse_email(query) if is_email(query) else None
     confirmed_raw   = await holehe_check(query) if email_meta_raw else []
     google_fp_raw   = await find_google_footprint(query) if email_meta_raw else None
+    hibp_raw        = await check_breaches(query, settings.hibp_api_key) \
+                      if (email_meta_raw and settings.hibp_enabled) else None
 
     urls = await asyncio.to_thread(fetch_search_urls, query)
     if not urls:
@@ -263,6 +305,10 @@ async def search(query: str = Query(..., min_length=2, max_length=200)):
         confirmed_accounts=[ConfirmedAccount(name=r.get("name",""), domain=r.get("domain",""))
                             for r in confirmed_raw],
         google_footprint=GoogleFootprint(**google_fp_raw) if google_fp_raw else None,
+        hibp_result=HIBPResult(
+            ok=hibp_raw["ok"], found=hibp_raw["found"], count=hibp_raw["count"],
+            breaches=[Breach(**b) for b in hibp_raw["breaches"]], error=hibp_raw.get("error"),
+        ) if hibp_raw else None,
         profiles_found=rule_result["profiles_found"],
         ranked_sources=[RankedSource(**s) for s in rule_result["ranked_sources"]],
         entities=[Entity(**e) for e in rule_result["entities"]],

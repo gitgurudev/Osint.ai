@@ -16,9 +16,16 @@ class Settings:
     openai_model: str    = os.getenv("OPENAI_MODEL", "gpt-4o")
     llm_content_limit: int = int(os.getenv("LLM_CONTENT_LIMIT", "6000"))
 
+    # Have I Been Pwned
+    hibp_api_key: str = os.getenv("HIBP_API_KEY", "")
+
     @property
     def llm_enabled(self) -> bool:
         return bool(self.openai_api_key)
+
+    @property
+    def hibp_enabled(self) -> bool:
+        return bool(self.hibp_api_key)
 
 
 @lru_cache

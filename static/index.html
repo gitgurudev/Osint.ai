@@ -198,6 +198,37 @@
       color: var(--green); border: 1px solid rgba(63,185,80,.3);
       border-radius: 20px; padding: 2px 8px;
     }
+    /* HIBP breach card */
+    .breach-list { display: flex; flex-direction: column; gap: 10px; }
+    .breach-item {
+      border-radius: var(--radius); padding: 12px 14px;
+      border-left: 3px solid var(--red);
+      background: rgba(248,81,73,.07);
+    }
+    .breach-item.medium {
+      border-left-color: var(--yellow);
+      background: rgba(210,153,34,.07);
+    }
+    .breach-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .breach-title  { font-weight: 700; font-size: 14px; }
+    .breach-meta   { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .breach-tags   { display: flex; flex-wrap: wrap; gap: 4px; }
+    .breach-tag {
+      font-size: 11px; padding: 2px 8px; border-radius: 20px;
+      background: rgba(248,81,73,.15); color: var(--red); border: 1px solid rgba(248,81,73,.3);
+    }
+    .breach-tag.safe {
+      background: rgba(210,153,34,.12); color: var(--yellow); border-color: rgba(210,153,34,.3);
+    }
+    .hibp-clean {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(63,185,80,.08); border: 1px solid rgba(63,185,80,.25);
+      border-radius: var(--radius); padding: 16px;
+    }
+    .hibp-clean-icon { font-size: 28px; }
+    .hibp-clean-text { font-size: 14px; color: var(--green); font-weight: 600; }
+    .hibp-clean-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
     /* Confirmed accounts card */
     .confirmed-grid {
       display: grid;
@@ -343,6 +374,7 @@
   <div class="tagline">Digital Intelligence Engine</div>
   <div class="header-right">
     <span id="llm-badge" class="badge badge-yellow">Checking...</span>
+    <span id="hibp-badge-header" class="badge badge-yellow">HIBP...</span>
     <a href="/docs" target="_blank" class="badge badge-blue" style="text-decoration:none">API Docs</a>
   </div>
 </header>
@@ -388,15 +420,22 @@
           <div class="step-detail" id="detail-google">Waiting...</div>
         </div>
       </li>
-      <li class="step" id="step-search">
+      <li class="step" id="step-hibp">
         <div class="step-icon">3</div>
+        <div class="step-body">
+          <div class="step-label">Have I Been Pwned</div>
+          <div class="step-detail" id="detail-hibp">Waiting...</div>
+        </div>
+      </li>
+      <li class="step" id="step-search">
+        <div class="step-icon">4</div>
         <div class="step-body">
           <div class="step-label">DuckDuckGo Search</div>
           <div class="step-detail" id="detail-search">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-scrape">
-        <div class="step-icon">4</div>
+        <div class="step-icon">5</div>
         <div class="step-body">
           <div class="step-label">Scraping Pages</div>
           <div class="step-detail" id="detail-scrape">Waiting...</div>
@@ -406,14 +445,14 @@
         </div>
       </li>
       <li class="step" id="step-analyze">
-        <div class="step-icon">5</div>
+        <div class="step-icon">6</div>
         <div class="step-body">
           <div class="step-label">Rule-based Analysis</div>
           <div class="step-detail" id="detail-analyze">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-llm">
-        <div class="step-icon">6</div>
+        <div class="step-icon">7</div>
         <div class="step-body">
           <div class="step-label">GPT-4o Enhancement</div>
           <div class="step-detail" id="detail-llm">Waiting...</div>
@@ -445,6 +484,17 @@
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-email"></div>
+  </div>
+
+  <div class="card" id="card-hibp">
+    <div class="card-header" onclick="toggleCard('card-hibp')">
+      <div class="card-title">
+        <span id="hibp-icon">⚠</span> Data Breach Check
+        <span id="hibp-badge" class="badge" style="margin-left:4px;display:none"></span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="card-body" id="body-hibp"></div>
   </div>
 
   <div class="card" id="card-confirmed">
@@ -517,6 +567,11 @@
       const el = document.getElementById('llm-badge');
       el.textContent = d.llm_enabled ? 'GPT-4o ON' : 'Rule-based';
       el.className   = 'badge ' + (d.llm_enabled ? 'badge-green' : 'badge-yellow');
+      const hibpEl = document.getElementById('hibp-badge-header');
+      if (hibpEl) {
+        hibpEl.textContent = d.hibp_enabled ? 'HIBP ON' : 'HIBP OFF';
+        hibpEl.className   = 'badge ' + (d.hibp_enabled ? 'badge-green' : 'badge-red');
+      }
     } catch {}
   }
   checkHealth();
@@ -532,7 +587,7 @@
 
   // ── Reset pipeline UI ────────────────────────────────────────────
   function resetPipeline() {
-    ['holehe','google','search','scrape','analyze','llm'].forEach(s => {
+    ['holehe','google','hibp','search','scrape','analyze','llm'].forEach(s => {
       const el = document.getElementById('step-' + s);
       el.className = 'step';
       document.getElementById('detail-' + s).textContent = 'Waiting...';
@@ -653,7 +708,7 @@
       }
 
       else if (d.type === 'error') {
-        ['holehe','google','search','scrape','analyze','llm'].forEach(s => {
+        ['holehe','google','hibp','search','scrape','analyze','llm'].forEach(s => {
           if (document.getElementById('step-'+s).classList.contains('active')) {
             setStepError(s, d.message);
           }
@@ -743,6 +798,71 @@
         </div>`;
     } else {
       document.getElementById('card-email').style.display = 'none';
+    }
+
+    // HIBP breach check
+    const hibp = d.hibp_result;
+    if (hibp) {
+      document.getElementById('card-hibp').style.display = '';
+      const badge  = document.getElementById('hibp-badge');
+      const icon   = document.getElementById('hibp-icon');
+      if (hibp.found) {
+        const hasHigh = hibp.breaches.some(b => b.severity === 'high');
+        badge.textContent = hibp.count + (hibp.count === 1 ? ' breach' : ' breaches');
+        badge.className   = 'badge ' + (hasHigh ? 'badge-red' : 'badge-yellow');
+        badge.style.display = '';
+        icon.textContent  = '🔓';
+        document.getElementById('body-hibp').innerHTML = `
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px">
+            This email was found in <strong style="color:var(--red)">${hibp.count}</strong> known data breach${hibp.count > 1 ? 'es' : ''}.
+            Change passwords on affected services immediately.
+          </p>
+          <div class="breach-list">${hibp.breaches.map(b => {
+            const isHigh = b.severity === 'high';
+            const pwnFmt = b.pwn_count >= 1e6
+              ? (b.pwn_count / 1e6).toFixed(1) + 'M'
+              : b.pwn_count >= 1e3
+              ? Math.round(b.pwn_count / 1e3) + 'K'
+              : b.pwn_count.toString();
+            return `
+            <div class="breach-item ${isHigh ? '' : 'medium'}">
+              <div class="breach-header">
+                <div style="display:flex;align-items:center;gap:8px">
+                  ${b.domain ? `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(b.domain)}&sz=16"
+                    width="16" height="16" onerror="this.style.display='none'" />` : ''}
+                  <span class="breach-title">${esc(b.title || b.name)}</span>
+                </div>
+                <span class="badge ${isHigh ? 'badge-red' : 'badge-yellow'}">${isHigh ? 'HIGH' : 'MEDIUM'}</span>
+              </div>
+              <div class="breach-meta">
+                ${b.domain ? `${esc(b.domain)} &nbsp;·&nbsp; ` : ''}
+                Breached <strong>${esc(b.breach_date)}</strong>
+                &nbsp;·&nbsp; ${pwnFmt} accounts affected
+                ${b.is_verified ? '' : ' &nbsp;·&nbsp; <em>unverified</em>'}
+              </div>
+              <div class="breach-tags">${b.data_classes.map(dc => {
+                const isPasswordClass = ['Passwords','Password hints','Credit cards',
+                  'Bank account numbers','Social security numbers'].includes(dc);
+                return `<span class="breach-tag ${isPasswordClass ? '' : 'safe'}">${esc(dc)}</span>`;
+              }).join('')}</div>
+            </div>`;
+          }).join('')}</div>`;
+      } else if (hibp.ok) {
+        icon.textContent = '✓';
+        badge.style.display = 'none';
+        document.getElementById('body-hibp').innerHTML = `
+          <div class="hibp-clean">
+            <div class="hibp-clean-icon">🔒</div>
+            <div>
+              <div class="hibp-clean-text">No breaches found</div>
+              <div class="hibp-clean-sub">This email does not appear in any known data breaches.</div>
+            </div>
+          </div>`;
+      } else {
+        document.getElementById('card-hibp').style.display = 'none';
+      }
+    } else {
+      document.getElementById('card-hibp').style.display = 'none';
     }
 
     // Google footprint
