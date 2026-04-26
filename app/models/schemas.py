@@ -55,6 +55,24 @@ class HIBPResult(BaseModel):
     error: Optional[str] = None
 
 
+class EmailRepResult(BaseModel):
+    ok: bool = False
+    reputation: str = "none"          # high | medium | low | none
+    suspicious: bool = False
+    references: int = 0
+    credentials_leaked: bool = False
+    credentials_leaked_recent: bool = False
+    data_breach: bool = False
+    blacklisted: bool = False
+    spam: bool = False
+    free_provider: bool = False
+    deliverable: bool = True
+    first_seen: Optional[str] = None
+    last_seen: Optional[str] = None
+    profiles: List[str] = []
+    error: Optional[str] = None
+
+
 class OSINTReport(BaseModel):
     query: str
     llm_enhanced: bool
@@ -63,6 +81,7 @@ class OSINTReport(BaseModel):
     confirmed_accounts: List[ConfirmedAccount] = []
     google_footprint: Optional[GoogleFootprint] = None
     hibp_result: Optional[HIBPResult] = None
+    emailrep_result: Optional[EmailRepResult] = None
     profiles_found: List[str]
     ranked_sources: List[RankedSource]
     entities: List[Entity]

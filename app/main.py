@@ -5,7 +5,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from app.core.config import get_settings
-from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta, ConfirmedAccount, GoogleFootprint, HIBPResult, Breach
+from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta, ConfirmedAccount, GoogleFootprint, HIBPResult, Breach, EmailRepResult
 from app.services.search import fetch_search_urls
 from app.services.scraper import scrape_page
 from app.services.analyzer import run_analysis
@@ -13,6 +13,7 @@ from app.services.llm import enhance_with_llm
 from app.services.holehe_checker import check_email as holehe_check, TOTAL_PLATFORMS
 from app.services.google_footprint import find_google_footprint
 from app.services.hibp_checker import check_breaches
+from app.services.emailrep_checker import check_email_reputation
 from app.utils.helpers import is_email, parse_email
 
 logging.basicConfig(
@@ -63,6 +64,7 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
         confirmed_raw   = []
         google_fp_raw   = None
         hibp_raw        = None
+        emailrep_raw    = None
 
         if is_email(query):
             email_meta_raw = parse_email(query)
@@ -149,12 +151,35 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
                 yield _evt({"type": "stage_skip", "stage": "hibp",
                             "message": "No HIBP_API_KEY — skipped"})
 
+            # ── Stage 0d: EmailRep (free, always runs for email) ──
+            yield _evt({"type": "stage", "stage": "emailrep",
+                        "message": "Checking email reputation (EmailRep.io)..."})
+            emailrep_raw = await check_email_reputation(query)
+            if not emailrep_raw["ok"]:
+                yield _evt({"type": "stage_skip", "stage": "emailrep",
+                            "message": emailrep_raw.get("error", "EmailRep unavailable")})
+            else:
+                leaked  = emailrep_raw["credentials_leaked"]
+                breached = emailrep_raw["data_breach"]
+                rep     = emailrep_raw["reputation"]
+                yield _evt({
+                    "type": "stage_done", "stage": "emailrep",
+                    "message": (
+                        f"Reputation: {rep}"
+                        + (" · credentials leaked!" if leaked else "")
+                        + (" · in data breach" if breached else "")
+                        + (f" · {len(emailrep_raw['profiles'])} profiles known" if emailrep_raw["profiles"] else "")
+                    ),
+                })
+
         else:
             yield _evt({"type": "stage_skip", "stage": "holehe",
                         "message": "Email not detected — skipped"})
             yield _evt({"type": "stage_skip", "stage": "google",
                         "message": "Email not detected — skipped"})
             yield _evt({"type": "stage_skip", "stage": "hibp",
+                        "message": "Email not detected — skipped"})
+            yield _evt({"type": "stage_skip", "stage": "emailrep",
                         "message": "Email not detected — skipped"})
 
         # ── Stage 1: Search ───────────────────────────────────────
@@ -255,6 +280,7 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
             confirmed_accounts=confirmed_accounts,
             google_footprint=GoogleFootprint(**google_fp_raw) if google_fp_raw else None,
             hibp_result=hibp_result,
+            emailrep_result=EmailRepResult(**emailrep_raw) if emailrep_raw else None,
             profiles_found=rule_result["profiles_found"],
             ranked_sources=[RankedSource(**s) for s in rule_result["ranked_sources"]],
             entities=[Entity(**e) for e in rule_result["entities"]],
@@ -279,6 +305,7 @@ async def search(query: str = Query(..., min_length=2, max_length=200)):
     google_fp_raw   = await find_google_footprint(query) if email_meta_raw else None
     hibp_raw        = await check_breaches(query, settings.hibp_api_key) \
                       if (email_meta_raw and settings.hibp_enabled) else None
+    emailrep_raw    = await check_email_reputation(query) if email_meta_raw else None
 
     urls = await asyncio.to_thread(fetch_search_urls, query)
     if not urls:
@@ -309,6 +336,7 @@ async def search(query: str = Query(..., min_length=2, max_length=200)):
             ok=hibp_raw["ok"], found=hibp_raw["found"], count=hibp_raw["count"],
             breaches=[Breach(**b) for b in hibp_raw["breaches"]], error=hibp_raw.get("error"),
         ) if hibp_raw else None,
+        emailrep_result=EmailRepResult(**emailrep_raw) if emailrep_raw else None,
         profiles_found=rule_result["profiles_found"],
         ranked_sources=[RankedSource(**s) for s in rule_result["ranked_sources"]],
         entities=[Entity(**e) for e in rule_result["entities"]],

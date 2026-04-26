@@ -198,6 +198,24 @@
       color: var(--green); border: 1px solid rgba(63,185,80,.3);
       border-radius: 20px; padding: 2px 8px;
     }
+    /* EmailRep reputation card */
+    .rep-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 8px;
+      margin-bottom: 14px;
+    }
+    .rep-item { background: var(--surface2); border-radius: var(--radius); padding: 10px 12px; }
+    .rep-key  { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+    .rep-val  { font-size: 14px; font-weight: 700; }
+    .rep-ok   { color: var(--green); }
+    .rep-warn { color: var(--yellow); }
+    .rep-bad  { color: var(--red); }
+    .rep-profiles { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .rep-profile-chip {
+      font-size: 12px; padding: 3px 10px; border-radius: 20px;
+      background: rgba(88,166,255,.12); color: var(--primary);
+      border: 1px solid rgba(88,166,255,.25); text-transform: capitalize;
+    }
+
     /* HIBP breach card */
     .breach-list { display: flex; flex-direction: column; gap: 10px; }
     .breach-item {
@@ -427,15 +445,22 @@
           <div class="step-detail" id="detail-hibp">Waiting...</div>
         </div>
       </li>
-      <li class="step" id="step-search">
+      <li class="step" id="step-emailrep">
         <div class="step-icon">4</div>
+        <div class="step-body">
+          <div class="step-label">Email Reputation (EmailRep.io)</div>
+          <div class="step-detail" id="detail-emailrep">Waiting...</div>
+        </div>
+      </li>
+      <li class="step" id="step-search">
+        <div class="step-icon">5</div>
         <div class="step-body">
           <div class="step-label">DuckDuckGo Search</div>
           <div class="step-detail" id="detail-search">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-scrape">
-        <div class="step-icon">5</div>
+        <div class="step-icon">6</div>
         <div class="step-body">
           <div class="step-label">Scraping Pages</div>
           <div class="step-detail" id="detail-scrape">Waiting...</div>
@@ -445,14 +470,14 @@
         </div>
       </li>
       <li class="step" id="step-analyze">
-        <div class="step-icon">6</div>
+        <div class="step-icon">7</div>
         <div class="step-body">
           <div class="step-label">Rule-based Analysis</div>
           <div class="step-detail" id="detail-analyze">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-llm">
-        <div class="step-icon">7</div>
+        <div class="step-icon">8</div>
         <div class="step-body">
           <div class="step-label">GPT-4o Enhancement</div>
           <div class="step-detail" id="detail-llm">Waiting...</div>
@@ -495,6 +520,17 @@
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-hibp"></div>
+  </div>
+
+  <div class="card" id="card-emailrep">
+    <div class="card-header" onclick="toggleCard('card-emailrep')">
+      <div class="card-title">
+        <span>⚡</span> Email Reputation
+        <span id="emailrep-badge" class="badge" style="margin-left:4px;display:none"></span>
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="card-body" id="body-emailrep"></div>
   </div>
 
   <div class="card" id="card-confirmed">
@@ -587,7 +623,7 @@
 
   // ── Reset pipeline UI ────────────────────────────────────────────
   function resetPipeline() {
-    ['holehe','google','hibp','search','scrape','analyze','llm'].forEach(s => {
+    ['holehe','google','hibp','emailrep','search','scrape','analyze','llm'].forEach(s => {
       const el = document.getElementById('step-' + s);
       el.className = 'step';
       document.getElementById('detail-' + s).textContent = 'Waiting...';
@@ -708,7 +744,7 @@
       }
 
       else if (d.type === 'error') {
-        ['holehe','google','hibp','search','scrape','analyze','llm'].forEach(s => {
+        ['holehe','google','hibp','emailrep','search','scrape','analyze','llm'].forEach(s => {
           if (document.getElementById('step-'+s).classList.contains('active')) {
             setStepError(s, d.message);
           }
@@ -798,6 +834,60 @@
         </div>`;
     } else {
       document.getElementById('card-email').style.display = 'none';
+    }
+
+    // EmailRep reputation
+    const er = d.emailrep_result;
+    if (er && er.ok) {
+      document.getElementById('card-emailrep').style.display = '';
+      const erBadge = document.getElementById('emailrep-badge');
+      const repColor = er.reputation === 'high' ? 'badge-green'
+                     : er.reputation === 'medium' ? 'badge-yellow'
+                     : 'badge-red';
+      erBadge.textContent = er.reputation + ' reputation';
+      erBadge.className   = 'badge ' + repColor;
+      erBadge.style.display = '';
+
+      const boolRow = (label, val, goodWhenTrue) => {
+        const cls = val === goodWhenTrue ? 'rep-ok' : (val ? 'rep-bad' : 'rep-warn');
+        return `<div class="rep-item">
+          <div class="rep-key">${label}</div>
+          <div class="rep-val ${cls}">${val ? 'Yes' : 'No'}</div>
+        </div>`;
+      };
+
+      document.getElementById('body-emailrep').innerHTML = `
+        <div class="rep-grid">
+          <div class="rep-item">
+            <div class="rep-key">Reputation</div>
+            <div class="rep-val ${repColor.replace('badge-','rep-').replace('green','ok').replace('yellow','warn').replace('blue','ok')}">${er.reputation.toUpperCase()}</div>
+          </div>
+          <div class="rep-item">
+            <div class="rep-key">References on web</div>
+            <div class="rep-val">${er.references.toLocaleString()}</div>
+          </div>
+          ${er.first_seen ? `<div class="rep-item"><div class="rep-key">First Seen</div><div class="rep-val">${esc(er.first_seen)}</div></div>` : ''}
+          ${er.last_seen  ? `<div class="rep-item"><div class="rep-key">Last Seen</div><div class="rep-val">${esc(er.last_seen)}</div></div>` : ''}
+          ${boolRow('Credentials Leaked', er.credentials_leaked, false)}
+          ${boolRow('In Data Breach', er.data_breach, false)}
+          ${boolRow('Blacklisted', er.blacklisted, false)}
+          ${boolRow('Spam', er.spam, false)}
+          ${boolRow('Deliverable', er.deliverable, true)}
+          ${er.credentials_leaked_recent ? `<div class="rep-item">
+            <div class="rep-key">Recent Leak</div>
+            <div class="rep-val rep-bad">YES — Recent!</div>
+          </div>` : ''}
+        </div>
+        ${er.profiles.length ? `
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Known profiles detected by EmailRep:</div>
+          <div class="rep-profiles">${er.profiles.map(p =>
+            `<span class="rep-profile-chip">${esc(p)}</span>`
+          ).join('')}</div>` : ''}
+        <p style="font-size:11px;color:var(--muted);margin-top:10px">
+          Source: <a href="https://emailrep.io" target="_blank">emailrep.io</a> — free tier (no key required)
+        </p>`;
+    } else {
+      document.getElementById('card-emailrep').style.display = 'none';
     }
 
     // HIBP breach check
