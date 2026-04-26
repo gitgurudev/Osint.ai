@@ -5,12 +5,13 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from app.core.config import get_settings
-from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta, ConfirmedAccount
+from app.models.schemas import OSINTReport, Entity, RankedSource, EmailMeta, ConfirmedAccount, GoogleFootprint
 from app.services.search import fetch_search_urls
 from app.services.scraper import scrape_page
 from app.services.analyzer import run_analysis
 from app.services.llm import enhance_with_llm
 from app.services.holehe_checker import check_email as holehe_check, TOTAL_PLATFORMS
+from app.services.google_footprint import find_google_footprint
 from app.utils.helpers import is_email, parse_email
 
 logging.basicConfig(
@@ -58,6 +59,7 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
         # ── Email detection ───────────────────────────────────────
         email_meta_raw  = None
         confirmed_raw   = []
+        google_fp_raw   = None
 
         if is_email(query):
             email_meta_raw = parse_email(query)
@@ -104,8 +106,26 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
                     "name": acc.get("name", ""),
                     "domain": acc.get("domain", ""),
                 })
+            # ── Stage 0b: Google Footprint ────────────────────────
+            yield _evt({"type": "stage", "stage": "google",
+                        "message": "Looking up Google account profile..."})
+            google_fp_raw = await find_google_footprint(query)
+            if google_fp_raw["found"]:
+                yield _evt({
+                    "type": "stage_done", "stage": "google",
+                    "message": f"Google profile found (uid: {google_fp_raw['user_id']})",
+                    "maps_url":   google_fp_raw["maps_url"],
+                    "photos_url": google_fp_raw["photos_url"],
+                    "user_id":    google_fp_raw["user_id"],
+                })
+            else:
+                yield _evt({"type": "stage_skip", "stage": "google",
+                            "message": "No public Google profile found"})
+
         else:
             yield _evt({"type": "stage_skip", "stage": "holehe",
+                        "message": "Email not detected — skipped"})
+            yield _evt({"type": "stage_skip", "stage": "google",
                         "message": "Email not detected — skipped"})
 
         # ── Stage 1: Search ───────────────────────────────────────
@@ -194,6 +214,7 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
             summary=summary,
             email_meta=EmailMeta(**email_meta_raw) if email_meta_raw else None,
             confirmed_accounts=confirmed_accounts,
+            google_footprint=GoogleFootprint(**google_fp_raw) if google_fp_raw else None,
             profiles_found=rule_result["profiles_found"],
             ranked_sources=[RankedSource(**s) for s in rule_result["ranked_sources"]],
             entities=[Entity(**e) for e in rule_result["entities"]],
@@ -215,6 +236,7 @@ async def search(query: str = Query(..., min_length=2, max_length=200)):
     settings        = get_settings()
     email_meta_raw  = parse_email(query) if is_email(query) else None
     confirmed_raw   = await holehe_check(query) if email_meta_raw else []
+    google_fp_raw   = await find_google_footprint(query) if email_meta_raw else None
 
     urls = await asyncio.to_thread(fetch_search_urls, query)
     if not urls:
@@ -240,6 +262,7 @@ async def search(query: str = Query(..., min_length=2, max_length=200)):
         email_meta=EmailMeta(**email_meta_raw) if email_meta_raw else None,
         confirmed_accounts=[ConfirmedAccount(name=r.get("name",""), domain=r.get("domain",""))
                             for r in confirmed_raw],
+        google_footprint=GoogleFootprint(**google_fp_raw) if google_fp_raw else None,
         profiles_found=rule_result["profiles_found"],
         ranked_sources=[RankedSource(**s) for s in rule_result["ranked_sources"]],
         entities=[Entity(**e) for e in rule_result["entities"]],

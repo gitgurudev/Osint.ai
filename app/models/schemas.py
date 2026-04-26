@@ -28,12 +28,20 @@ class ConfirmedAccount(BaseModel):
     exists: bool = True
 
 
+class GoogleFootprint(BaseModel):
+    found: bool = False
+    user_id: Optional[str] = None
+    maps_url: Optional[str] = None
+    photos_url: Optional[str] = None
+
+
 class OSINTReport(BaseModel):
     query: str
     llm_enhanced: bool
     summary: Optional[str] = None
     email_meta: Optional[EmailMeta] = None
     confirmed_accounts: List[ConfirmedAccount] = []   # from holehe (email only)
+    google_footprint: Optional[GoogleFootprint] = None
     profiles_found: List[str]
     ranked_sources: List[RankedSource]
     entities: List[Entity]

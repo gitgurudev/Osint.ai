@@ -381,15 +381,22 @@
           <div class="holehe-live" id="holehe-live"></div>
         </div>
       </li>
-      <li class="step" id="step-search">
+      <li class="step" id="step-google">
         <div class="step-icon">2</div>
+        <div class="step-body">
+          <div class="step-label">Google Account Lookup</div>
+          <div class="step-detail" id="detail-google">Waiting...</div>
+        </div>
+      </li>
+      <li class="step" id="step-search">
+        <div class="step-icon">3</div>
         <div class="step-body">
           <div class="step-label">DuckDuckGo Search</div>
           <div class="step-detail" id="detail-search">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-scrape">
-        <div class="step-icon">3</div>
+        <div class="step-icon">4</div>
         <div class="step-body">
           <div class="step-label">Scraping Pages</div>
           <div class="step-detail" id="detail-scrape">Waiting...</div>
@@ -399,14 +406,14 @@
         </div>
       </li>
       <li class="step" id="step-analyze">
-        <div class="step-icon">4</div>
+        <div class="step-icon">5</div>
         <div class="step-body">
           <div class="step-label">Rule-based Analysis</div>
           <div class="step-detail" id="detail-analyze">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-llm">
-        <div class="step-icon">5</div>
+        <div class="step-icon">6</div>
         <div class="step-body">
           <div class="step-label">GPT-4o Enhancement</div>
           <div class="step-detail" id="detail-llm">Waiting...</div>
@@ -446,6 +453,17 @@
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-confirmed"></div>
+  </div>
+
+  <div class="card" id="card-google">
+    <div class="card-header" onclick="toggleCard('card-google')">
+      <div class="card-title">
+        <img src="https://www.google.com/favicon.ico" width="14" height="14" style="border-radius:2px" />
+        Google Footprint
+      </div>
+      <span class="chevron">▾</span>
+    </div>
+    <div class="card-body" id="body-google"></div>
   </div>
 
   <div class="card" id="card-insights">
@@ -514,7 +532,7 @@
 
   // ── Reset pipeline UI ────────────────────────────────────────────
   function resetPipeline() {
-    ['holehe','search','scrape','analyze','llm'].forEach(s => {
+    ['holehe','google','search','scrape','analyze','llm'].forEach(s => {
       const el = document.getElementById('step-' + s);
       el.className = 'step';
       document.getElementById('detail-' + s).textContent = 'Waiting...';
@@ -619,7 +637,11 @@
       }
 
       else if (d.type === 'confirmed_account') {
-        // nothing extra — final list rendered from result event
+        // final list rendered from result event
+      }
+
+      else if (d.type === 'email_detected') {
+        // no UI action needed — pipeline steps handle it
       }
 
       else if (d.type === 'scrape_progress') {
@@ -631,7 +653,7 @@
       }
 
       else if (d.type === 'error') {
-        ['holehe','search','scrape','analyze','llm'].forEach(s => {
+        ['holehe','google','search','scrape','analyze','llm'].forEach(s => {
           if (document.getElementById('step-'+s).classList.contains('active')) {
             setStepError(s, d.message);
           }
@@ -721,6 +743,36 @@
         </div>`;
     } else {
       document.getElementById('card-email').style.display = 'none';
+    }
+
+    // Google footprint
+    const gf = d.google_footprint;
+    if (gf && gf.found) {
+      document.getElementById('card-google').style.display = '';
+      document.getElementById('body-google').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:var(--surface2);border:1px solid rgba(88,166,255,.2);border-radius:var(--radius);padding:12px 14px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Google Account ID</div>
+            <div style="font-family:monospace;font-size:14px;color:var(--primary)">${esc(gf.user_id)}</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a href="${esc(gf.maps_url)}" target="_blank" style="display:flex;align-items:center;gap:8px;
+               background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);border-radius:var(--radius);
+               padding:10px 14px;color:var(--green);font-size:14px;font-weight:600;text-decoration:none">
+              <span>📍</span> Google Maps Reviews
+            </a>
+            <a href="${esc(gf.photos_url)}" target="_blank" style="display:flex;align-items:center;gap:8px;
+               background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.3);border-radius:var(--radius);
+               padding:10px 14px;color:var(--primary);font-size:14px;font-weight:600;text-decoration:none">
+              <span>🖼</span> Google Maps Photos
+            </a>
+          </div>
+          <p style="font-size:12px;color:var(--muted)">
+            These links show the public Google Maps activity tied to this Google account.
+          </p>
+        </div>`;
+    } else {
+      document.getElementById('card-google').style.display = 'none';
     }
 
     // Confirmed accounts (holehe)
