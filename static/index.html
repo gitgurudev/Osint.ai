@@ -5,23 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OSINT AI — Digital Intelligence Engine</title>
   <style>
-    /* ── Reset & base ─────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --surface2:  #1c2128;
-      --border:    #30363d;
-      --primary:   #58a6ff;
-      --primary-d: #1f6feb;
-      --green:     #3fb950;
-      --yellow:    #d29922;
-      --red:       #f85149;
-      --purple:    #bc8cff;
-      --text:      #e6edf3;
-      --muted:     #8b949e;
-      --radius:    8px;
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #1c2128;
+      --border:   #30363d;
+      --primary:  #58a6ff;
+      --primary-d:#1f6feb;
+      --green:    #3fb950;
+      --yellow:   #d29922;
+      --red:      #f85149;
+      --purple:   #bc8cff;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --radius:   8px;
     }
 
     body {
@@ -29,450 +28,302 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 0 0 60px;
+      padding-bottom: 60px;
     }
 
     a { color: var(--primary); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ── Header ───────────────────────────────────────────── */
+    /* ── Header ── */
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 18px 24px;
+      padding: 16px 24px;
       display: flex;
       align-items: center;
-      gap: 14px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      gap: 12px;
+      position: sticky; top: 0; z-index: 100;
     }
-
-    .logo {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--primary);
-    }
+    .logo { font-size: 20px; font-weight: 700; color: var(--primary); }
     .logo span { color: var(--text); }
-
-    .tagline {
-      font-size: 13px;
-      color: var(--muted);
-      margin-left: 4px;
-    }
-
-    .header-right {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .tagline { font-size: 13px; color: var(--muted); }
+    .header-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 
     .badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 20px;
-      letter-spacing: 0.3px;
+      font-size: 11px; font-weight: 600;
+      padding: 3px 9px; border-radius: 20px;
     }
     .badge-green  { background: rgba(63,185,80,.15);  color: var(--green); }
     .badge-yellow { background: rgba(210,153,34,.15); color: var(--yellow); }
     .badge-blue   { background: rgba(88,166,255,.15); color: var(--primary); }
     .badge-purple { background: rgba(188,140,255,.15);color: var(--purple); }
+    .badge-red    { background: rgba(248,81,73,.15);  color: var(--red); }
 
-    /* ── Search section ───────────────────────────────────── */
-    .hero {
-      text-align: center;
-      padding: 52px 20px 36px;
-    }
-
+    /* ── Hero ── */
+    .hero { text-align: center; padding: 48px 20px 32px; }
     .hero h1 {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-size: 30px; font-weight: 700; margin-bottom: 8px;
       background: linear-gradient(135deg, var(--primary), var(--purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
+    .hero p { color: var(--muted); font-size: 15px; margin-bottom: 28px; }
 
-    .hero p {
-      color: var(--muted);
-      font-size: 15px;
-      margin-bottom: 32px;
-    }
-
-    .search-wrap {
-      max-width: 640px;
-      margin: 0 auto;
-      display: flex;
-      gap: 10px;
-    }
-
+    .search-wrap { max-width: 620px; margin: 0 auto; display: flex; gap: 10px; }
     .search-input {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-size: 15px;
-      padding: 12px 16px;
-      outline: none;
-      transition: border-color .2s;
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text); font-size: 15px;
+      padding: 12px 16px; outline: none; transition: border-color .2s;
     }
     .search-input::placeholder { color: var(--muted); }
     .search-input:focus { border-color: var(--primary); }
 
     .btn {
-      background: var(--primary-d);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      padding: 12px 24px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .2s, opacity .2s;
-      white-space: nowrap;
+      background: var(--primary-d); color: #fff; border: none;
+      border-radius: var(--radius); padding: 12px 24px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background .2s, opacity .2s; white-space: nowrap;
     }
     .btn:hover { background: var(--primary); }
-    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
 
-    .hints {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
+    .hints { display: flex; justify-content: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
     .hint-chip {
-      font-size: 12px;
-      color: var(--muted);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 3px 10px;
-      cursor: pointer;
+      font-size: 12px; color: var(--muted);
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 3px 10px; cursor: pointer;
       transition: border-color .2s, color .2s;
     }
     .hint-chip:hover { border-color: var(--primary); color: var(--primary); }
 
-    /* ── Loader ───────────────────────────────────────────── */
-    #loader {
+    /* ── Pipeline progress ── */
+    #pipeline {
       display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      padding: 60px 20px;
+      max-width: 620px;
+      margin: 0 auto 8px;
+      padding: 0 20px;
     }
 
-    .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
+    .pipeline-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .pipeline-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px; font-weight: 600; color: var(--muted);
+    }
+
+    .spinner-sm {
+      width: 14px; height: 14px;
+      border: 2px solid var(--border); border-top-color: var(--primary);
+      border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .loading-steps { list-style: none; text-align: left; }
-    .loading-steps li {
-      font-size: 14px;
-      color: var(--muted);
-      padding: 4px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    /* Steps list */
+    .steps { list-style: none; padding: 10px 0; }
+    .step {
+      display: flex; align-items: flex-start;
+      gap: 12px; padding: 8px 16px;
+      font-size: 13px; transition: background .2s;
     }
-    .loading-steps li.active  { color: var(--primary); }
-    .loading-steps li.done    { color: var(--green); }
-    .step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--border);
-      flex-shrink: 0;
-    }
-    .active .step-dot  { background: var(--primary); }
-    .done   .step-dot  { background: var(--green); }
+    .step.active { background: rgba(88,166,255,.06); }
+    .step.done   { }
+    .step.skip   { opacity: .5; }
 
-    /* ── Error ────────────────────────────────────────────── */
-    #error-box {
-      display: none;
-      max-width: 640px;
-      margin: 0 auto 24px;
-      background: rgba(248,81,73,.1);
-      border: 1px solid rgba(248,81,73,.4);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      font-size: 14px;
+    .step-icon {
+      width: 18px; height: 18px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; flex-shrink: 0; margin-top: 1px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .step.active .step-icon {
+      background: rgba(88,166,255,.15); border-color: var(--primary);
+      color: var(--primary);
+    }
+    .step.done .step-icon {
+      background: rgba(63,185,80,.15); border-color: var(--green);
+      color: var(--green);
+    }
+    .step.error .step-icon {
+      background: rgba(248,81,73,.15); border-color: var(--red);
       color: var(--red);
     }
+    .step.skip .step-icon {
+      background: var(--surface2); border-color: var(--border);
+      color: var(--muted);
+    }
 
-    /* ── Results layout ───────────────────────────────────── */
-    #results { display: none; max-width: 960px; margin: 0 auto; padding: 0 20px; }
+    .step-body { flex: 1; min-width: 0; }
+    .step-label { font-weight: 600; color: var(--text); }
+    .step.active .step-label { color: var(--primary); }
+    .step.done   .step-label { color: var(--text); }
+    .step.skip   .step-label { color: var(--muted); }
 
-    /* Query info bar */
+    .step-detail {
+      font-size: 12px; color: var(--muted); margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Scrape progress bar */
+    .scrape-bar-wrap {
+      margin-top: 6px; background: var(--border);
+      border-radius: 3px; height: 4px; overflow: hidden;
+    }
+    .scrape-bar {
+      height: 100%; background: var(--primary);
+      border-radius: 3px; transition: width .3s ease;
+      width: 0%;
+    }
+
+    /* ── Error ── */
+    #error-box {
+      display: none; max-width: 620px; margin: 0 auto 16px; padding: 0 20px;
+    }
+    .error-inner {
+      background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.4);
+      border-radius: var(--radius); padding: 12px 16px;
+      font-size: 14px; color: var(--red);
+    }
+
+    /* ── Results ── */
+    #results { display: none; max-width: 960px; margin: 24px auto 0; padding: 0 20px; }
+
     .query-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 14px 18px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 20px;
-      font-size: 14px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 12px 16px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      margin-bottom: 16px; font-size: 14px;
     }
     .query-bar strong { color: var(--primary); font-size: 15px; }
 
-    /* Stat row */
     .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+      gap: 10px; margin-bottom: 16px;
     }
     .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      text-align: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; text-align: center;
     }
-    .stat-num  { font-size: 28px; font-weight: 700; color: var(--primary); }
+    .stat-num  { font-size: 26px; font-weight: 700; color: var(--primary); }
     .stat-label{ font-size: 12px; color: var(--muted); margin-top: 4px; }
 
     /* Cards */
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 16px;
-      overflow: hidden;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;
     }
     .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      user-select: none;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-size: 14px; font-weight: 600; cursor: pointer; user-select: none;
     }
     .card-header:hover { background: var(--surface2); }
     .card-title { display: flex; align-items: center; gap: 8px; }
-    .card-icon  { font-size: 16px; }
-    .chevron    { color: var(--muted); transition: transform .2s; }
+    .chevron { color: var(--muted); transition: transform .2s; font-size: 12px; }
     .card.collapsed .chevron { transform: rotate(-90deg); }
     .card.collapsed .card-body { display: none; }
-    .card-body  { padding: 16px 18px; }
+    .card-body { padding: 14px 16px; }
 
-    /* Summary */
     .summary-text {
-      font-size: 15px;
-      line-height: 1.7;
-      color: var(--text);
-      background: var(--surface2);
-      border-left: 3px solid var(--primary);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      padding: 14px 16px;
+      font-size: 15px; line-height: 1.7;
+      background: var(--surface2); border-left: 3px solid var(--primary);
+      border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 14px;
     }
 
-    /* Email meta */
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-    }
-    .meta-item {
-      background: var(--surface2);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-    }
-    .meta-key   { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
-    .meta-val   { font-size: 14px; font-weight: 600; }
+    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 8px; }
+    .meta-item { background: var(--surface2); border-radius: var(--radius); padding: 10px 12px; }
+    .meta-key  { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+    .meta-val  { font-size: 14px; font-weight: 600; }
 
-    /* Profile list */
-    .profile-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .profile-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
     .profile-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--surface2);
-      border-radius: var(--radius);
-      padding: 10px 14px;
-      font-size: 14px;
-    }
-    .profile-favicon {
-      width: 16px; height: 16px;
-      border-radius: 3px;
-      background: var(--border);
-      flex-shrink: 0;
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border-radius: var(--radius);
+      padding: 9px 12px; font-size: 14px;
     }
 
-    /* Insights */
-    .insight-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .insight-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
     .insight-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 14px;
-      line-height: 1.5;
-      padding: 8px 12px;
-      background: var(--surface2);
-      border-radius: var(--radius);
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 14px; line-height: 1.5;
+      padding: 8px 10px; background: var(--surface2); border-radius: var(--radius);
     }
-    .insight-dot { color: var(--green); margin-top: 2px; flex-shrink: 0; }
+    .insight-dot { color: var(--green); flex-shrink: 0; margin-top: 2px; }
 
-    /* Entities */
-    .entity-list { display: flex; flex-direction: column; gap: 12px; }
-    .entity-item {
-      background: var(--surface2);
-      border-radius: var(--radius);
-      padding: 14px;
-    }
-    .entity-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
+    .entity-list { display: flex; flex-direction: column; gap: 10px; }
+    .entity-item { background: var(--surface2); border-radius: var(--radius); padding: 12px; }
+    .entity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .entity-id { font-weight: 600; font-size: 14px; }
-    .conf-pill {
-      font-size: 12px;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 20px;
-    }
-    .conf-high   { background: rgba(63,185,80,.15);  color: var(--green); }
-    .conf-mid    { background: rgba(210,153,34,.15); color: var(--yellow); }
-    .conf-low    { background: rgba(248,81,73,.15);  color: var(--red); }
-
-    .conf-bar-wrap {
-      background: var(--border);
-      border-radius: 4px;
-      height: 6px;
-      margin-bottom: 10px;
-      overflow: hidden;
-    }
-    .conf-bar { height: 100%; border-radius: 4px; transition: width 1s ease; }
+    .conf-pill { font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 20px; }
+    .conf-high { background: rgba(63,185,80,.15); color: var(--green); }
+    .conf-mid  { background: rgba(210,153,34,.15); color: var(--yellow); }
+    .conf-low  { background: rgba(248,81,73,.15);  color: var(--red); }
+    .conf-bar-wrap { background: var(--border); border-radius: 3px; height: 5px; margin-bottom: 8px; overflow: hidden; }
+    .conf-bar { height: 100%; border-radius: 3px; transition: width 1s ease; }
     .conf-bar.high { background: var(--green); }
     .conf-bar.mid  { background: var(--yellow); }
     .conf-bar.low  { background: var(--red); }
+    .entity-sources { display: flex; flex-direction: column; gap: 3px; }
+    .entity-src { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 
-    .entity-sources { display: flex; flex-direction: column; gap: 4px; }
-    .entity-src {
-      font-size: 12px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* Sources table */
     .sources-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .sources-table th {
-      text-align: left;
-      padding: 8px 12px;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
+      text-align: left; padding: 8px 10px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+      color: var(--muted); border-bottom: 1px solid var(--border);
     }
-    .sources-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(48,54,61,.5);
-      vertical-align: middle;
-    }
+    .sources-table td { padding: 9px 10px; border-bottom: 1px solid rgba(48,54,61,.5); vertical-align: middle; }
     .sources-table tr:last-child td { border-bottom: none; }
     .sources-table tr:hover td { background: var(--surface2); }
+    .url-cell { max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    .score-bar-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .score-mini-bar {
-      flex: 1;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-      min-width: 60px;
-    }
+    .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .score-mini-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; min-width: 50px; }
     .score-mini-fill { height: 100%; border-radius: 2px; }
 
-    .url-cell {
-      max-width: 380px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* Copy JSON button */
     .copy-btn {
-      background: var(--surface2);
-      color: var(--muted);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 8px 16px;
-      font-size: 13px;
-      cursor: pointer;
+      background: var(--surface2); color: var(--muted);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 7px 14px; font-size: 13px; cursor: pointer;
       transition: color .2s, border-color .2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      display: flex; align-items: center; gap: 6px;
     }
     .copy-btn:hover { color: var(--primary); border-color: var(--primary); }
 
-    /* Footer */
-    footer {
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 48px;
-    }
+    footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 40px; }
 
-    /* Responsive */
     @media (max-width: 600px) {
-      .hero h1 { font-size: 24px; }
+      .hero h1 { font-size: 22px; }
       .search-wrap { flex-direction: column; }
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .stats-row { grid-template-columns: repeat(2,1fr); }
     }
   </style>
 </head>
 <body>
 
-<!-- ── Header ──────────────────────────────────────────────────── -->
 <header>
   <div class="logo">OSINT<span>AI</span></div>
   <div class="tagline">Digital Intelligence Engine</div>
   <div class="header-right">
-    <span id="llm-badge" class="badge badge-yellow">Loading...</span>
+    <span id="llm-badge" class="badge badge-yellow">Checking...</span>
     <a href="/docs" target="_blank" class="badge badge-blue" style="text-decoration:none">API Docs</a>
   </div>
 </header>
 
-<!-- ── Hero / Search ────────────────────────────────────────────── -->
 <section class="hero">
   <h1>Public Digital Footprint Analyzer</h1>
   <p>Enter a name, username, or email — get a structured intelligence report in seconds</p>
-
   <div class="search-wrap">
-    <input
-      id="search-input"
-      class="search-input"
-      type="text"
-      placeholder="Elon Musk  /  gitgurudev  /  john@gmail.com"
-      autocomplete="off"
-    />
+    <input id="search-input" class="search-input" type="text"
+      placeholder="Elon Musk  /  gitgurudev  /  john@gmail.com" autocomplete="off" />
     <button id="search-btn" class="btn" onclick="runSearch()">Analyze</button>
   </div>
-
   <div class="hints">
     <span class="hint-chip" onclick="fillQuery('Elon Musk')">Elon Musk</span>
     <span class="hint-chip" onclick="fillQuery('Satya Nadella')">Satya Nadella</span>
@@ -480,203 +331,270 @@
   </div>
 </section>
 
-<!-- ── Loader ───────────────────────────────────────────────────── -->
-<div id="loader">
-  <div class="spinner"></div>
-  <ul class="loading-steps">
-    <li id="step-search"><span class="step-dot"></span>Searching DuckDuckGo...</li>
-    <li id="step-scrape"><span class="step-dot"></span>Scraping web pages...</li>
-    <li id="step-analyze"><span class="step-dot"></span>Running analysis...</li>
-    <li id="step-llm"    ><span class="step-dot"></span>GPT-4o enhancement...</li>
-  </ul>
+<!-- ── Real-time pipeline progress ── -->
+<div id="pipeline">
+  <div class="pipeline-wrap">
+    <div class="pipeline-header">
+      <div class="spinner-sm" id="pipeline-spinner"></div>
+      <span id="pipeline-title">Running pipeline...</span>
+    </div>
+    <ul class="steps" id="steps-list">
+      <li class="step" id="step-search">
+        <div class="step-icon">1</div>
+        <div class="step-body">
+          <div class="step-label">DuckDuckGo Search</div>
+          <div class="step-detail" id="detail-search">Waiting...</div>
+        </div>
+      </li>
+      <li class="step" id="step-scrape">
+        <div class="step-icon">2</div>
+        <div class="step-body">
+          <div class="step-label">Scraping Pages</div>
+          <div class="step-detail" id="detail-scrape">Waiting...</div>
+          <div class="scrape-bar-wrap" id="scrape-bar-wrap" style="display:none">
+            <div class="scrape-bar" id="scrape-bar"></div>
+          </div>
+        </div>
+      </li>
+      <li class="step" id="step-analyze">
+        <div class="step-icon">3</div>
+        <div class="step-body">
+          <div class="step-label">Rule-based Analysis</div>
+          <div class="step-detail" id="detail-analyze">Waiting...</div>
+        </div>
+      </li>
+      <li class="step" id="step-llm">
+        <div class="step-icon">4</div>
+        <div class="step-body">
+          <div class="step-label">GPT-4o Enhancement</div>
+          <div class="step-detail" id="detail-llm">Waiting...</div>
+        </div>
+      </li>
+    </ul>
+  </div>
 </div>
 
-<!-- ── Error box ────────────────────────────────────────────────── -->
-<div style="padding: 0 20px; max-width:960px; margin:0 auto">
-  <div id="error-box"></div>
+<div style="max-width:620px;margin:12px auto 0;padding:0 20px">
+  <div id="error-box" style="display:none"></div>
 </div>
 
-<!-- ── Results ──────────────────────────────────────────────────── -->
 <div id="results">
-
-  <!-- Query bar -->
   <div class="query-bar" id="query-bar"></div>
-
-  <!-- Stats row -->
   <div class="stats-row" id="stats-row"></div>
 
-  <!-- Summary (LLM) -->
   <div class="card" id="card-summary">
     <div class="card-header" onclick="toggleCard('card-summary')">
-      <div class="card-title"><span class="card-icon">✦</span> AI Summary</div>
+      <div class="card-title"><span>✦</span> AI Summary</div>
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-summary"></div>
   </div>
 
-  <!-- Email meta -->
   <div class="card" id="card-email">
     <div class="card-header" onclick="toggleCard('card-email')">
-      <div class="card-title"><span class="card-icon">✉</span> Email Intelligence</div>
+      <div class="card-title"><span>✉</span> Email Intelligence</div>
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-email"></div>
   </div>
 
-  <!-- Insights -->
   <div class="card" id="card-insights">
     <div class="card-header" onclick="toggleCard('card-insights')">
-      <div class="card-title"><span class="card-icon">◎</span> Insights</div>
+      <div class="card-title"><span>◎</span> Insights</div>
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-insights"></div>
   </div>
 
-  <!-- Profiles -->
   <div class="card" id="card-profiles">
     <div class="card-header" onclick="toggleCard('card-profiles')">
-      <div class="card-title"><span class="card-icon">◉</span> Profiles Found</div>
+      <div class="card-title"><span>◉</span> Profiles Found</div>
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-profiles"></div>
   </div>
 
-  <!-- Entities -->
   <div class="card" id="card-entities">
     <div class="card-header" onclick="toggleCard('card-entities')">
-      <div class="card-title"><span class="card-icon">◈</span> Identity Clusters</div>
+      <div class="card-title"><span>◈</span> Identity Clusters</div>
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-entities"></div>
   </div>
 
-  <!-- Sources -->
   <div class="card" id="card-sources">
     <div class="card-header" onclick="toggleCard('card-sources')">
-      <div class="card-title"><span class="card-icon">◇</span> Ranked Sources</div>
+      <div class="card-title"><span>◇</span> Ranked Sources</div>
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-sources"></div>
   </div>
 
-  <!-- Copy JSON -->
-  <div style="display:flex; justify-content:flex-end; margin-top:8px; margin-bottom: 40px;">
+  <div style="display:flex;justify-content:flex-end;margin-top:8px;margin-bottom:40px">
     <button class="copy-btn" onclick="copyJSON()">⧉ Copy raw JSON</button>
   </div>
 </div>
 
-<footer>OSINT AI v5.0 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
+<footer>OSINT AI v6.0 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
 
-<!-- ── JavaScript ───────────────────────────────────────────────── -->
 <script>
   let lastResult = null;
+  let activeSource = null;
 
-  // ── On load: ping health endpoint ──────────────────────────────
+  // ── Health check ────────────────────────────────────────────────
   async function checkHealth() {
     try {
-      const r = await fetch('/api/health');
-      const d = await r.json();
-      const badge = document.getElementById('llm-badge');
-      if (d.llm_enabled) {
-        badge.textContent = 'GPT-4o ON';
-        badge.className = 'badge badge-green';
-      } else {
-        badge.textContent = 'Rule-based mode';
-        badge.className = 'badge badge-yellow';
-      }
-    } catch { /* server not ready yet */ }
+      const r  = await fetch('/api/health');
+      const d  = await r.json();
+      const el = document.getElementById('llm-badge');
+      el.textContent = d.llm_enabled ? 'GPT-4o ON' : 'Rule-based';
+      el.className   = 'badge ' + (d.llm_enabled ? 'badge-green' : 'badge-yellow');
+    } catch {}
   }
   checkHealth();
 
-  // ── Hint chips ──────────────────────────────────────────────────
+  // ── Hint chips / Enter key ───────────────────────────────────────
   function fillQuery(q) {
     document.getElementById('search-input').value = q;
     document.getElementById('search-input').focus();
   }
-
-  // ── Enter key ───────────────────────────────────────────────────
   document.getElementById('search-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') runSearch();
   });
 
-  // ── Steps animation ─────────────────────────────────────────────
-  let stepTimer;
-  function animateSteps() {
-    const steps = ['step-search','step-scrape','step-analyze','step-llm'];
-    let i = 0;
-    steps.forEach(id => {
-      document.getElementById(id).className = '';
+  // ── Reset pipeline UI ────────────────────────────────────────────
+  function resetPipeline() {
+    ['search','scrape','analyze','llm'].forEach(s => {
+      const el = document.getElementById('step-' + s);
+      el.className = 'step';
+      document.getElementById('detail-' + s).textContent = 'Waiting...';
     });
-    stepTimer = setInterval(() => {
-      if (i > 0) document.getElementById(steps[i-1]).className = 'done';
-      if (i < steps.length) {
-        document.getElementById(steps[i]).className = 'active';
-        i++;
-      }
-    }, 1800);
+    document.getElementById('scrape-bar-wrap').style.display = 'none';
+    document.getElementById('scrape-bar').style.width = '0%';
+    document.getElementById('pipeline-title').textContent = 'Running pipeline...';
+    document.getElementById('pipeline-spinner').style.display = '';
   }
 
-  function stopSteps() {
-    clearInterval(stepTimer);
-    ['step-search','step-scrape','step-analyze','step-llm'].forEach(id => {
-      document.getElementById(id).className = 'done';
-    });
+  function setStepActive(stage, msg) {
+    const el = document.getElementById('step-' + stage);
+    if (!el) return;
+    el.className = 'step active';
+    if (msg) document.getElementById('detail-' + stage).textContent = msg;
   }
 
-  // ── Main search ─────────────────────────────────────────────────
-  async function runSearch() {
+  function setStepDone(stage, msg) {
+    const el = document.getElementById('step-' + stage);
+    if (!el) return;
+    el.className = 'step done';
+    el.querySelector('.step-icon').textContent = '✓';
+    if (msg) document.getElementById('detail-' + stage).textContent = msg;
+  }
+
+  function setStepSkip(stage, msg) {
+    const el = document.getElementById('step-' + stage);
+    if (!el) return;
+    el.className = 'step skip';
+    el.querySelector('.step-icon').textContent = '–';
+    if (msg) document.getElementById('detail-' + stage).textContent = msg;
+  }
+
+  function setStepError(stage, msg) {
+    const el = document.getElementById('step-' + stage);
+    if (!el) return;
+    el.className = 'step error';
+    el.querySelector('.step-icon').textContent = '✕';
+    if (msg) document.getElementById('detail-' + stage).textContent = msg;
+  }
+
+  // ── Main search using SSE ────────────────────────────────────────
+  function runSearch() {
     const query = document.getElementById('search-input').value.trim();
     if (!query) return;
 
-    setLoading(true);
-    hideResults();
-    hideError();
+    // Close any existing stream
+    if (activeSource) { activeSource.close(); activeSource = null; }
 
-    try {
-      animateSteps();
-      const res = await fetch(`/search?query=${encodeURIComponent(query)}`);
-      stopSteps();
+    document.getElementById('search-btn').disabled = true;
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+    document.getElementById('pipeline').style.display = 'block';
+    resetPipeline();
 
-      if (!res.ok) {
-        const err = await res.json();
-        showError(err.detail || 'Something went wrong.');
-        return;
+    const url = '/search/stream?query=' + encodeURIComponent(query);
+    const es  = new EventSource(url);
+    activeSource = es;
+
+    es.onmessage = (event) => {
+      let d;
+      try { d = JSON.parse(event.data); } catch { return; }
+
+      if (d.type === 'stage') {
+        setStepActive(d.stage, d.message);
+        if (d.stage === 'scrape' && d.total) {
+          document.getElementById('scrape-bar-wrap').style.display = 'block';
+        }
       }
 
-      const data = await res.json();
-      lastResult = data;
-      renderResults(data);
-    } catch (e) {
-      stopSteps();
-      showError('Could not connect to server. Is python run.py running?');
-    } finally {
-      setLoading(false);
-    }
+      else if (d.type === 'stage_done') {
+        setStepDone(d.stage, d.message);
+      }
+
+      else if (d.type === 'stage_skip') {
+        setStepSkip(d.stage, d.message);
+      }
+
+      else if (d.type === 'scrape_progress') {
+        const pct = Math.round((d.done / d.total) * 100);
+        document.getElementById('scrape-bar').style.width = pct + '%';
+        const short = d.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45);
+        document.getElementById('detail-scrape').textContent =
+          `${d.done}/${d.total} — ${short}${d.success ? '' : ' (failed)'}`;
+      }
+
+      else if (d.type === 'error') {
+        // Find which step is active and mark it as error
+        ['search','scrape','analyze','llm'].forEach(s => {
+          if (document.getElementById('step-'+s).classList.contains('active')) {
+            setStepError(s, d.message);
+          }
+        });
+        document.getElementById('error-box').innerHTML =
+          `<div style="background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.4);
+            border-radius:8px;padding:12px 16px;font-size:14px;color:var(--red)">
+            ✕ &nbsp;${esc(d.message)}</div>`;
+        document.getElementById('error-box').style.display = 'block';
+        finishSearch(es);
+      }
+
+      else if (d.type === 'result') {
+        lastResult = d.data;
+        document.getElementById('pipeline-title').textContent = 'Pipeline complete';
+        document.getElementById('pipeline-spinner').style.display = 'none';
+        renderResults(d.data);
+        finishSearch(es);
+      }
+    };
+
+    es.onerror = () => {
+      document.getElementById('error-box').innerHTML =
+        `<div style="background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.4);
+          border-radius:8px;padding:12px 16px;font-size:14px;color:var(--red)">
+          ✕ &nbsp;Connection lost. Is the server running?</div>`;
+      document.getElementById('error-box').style.display = 'block';
+      finishSearch(es);
+    };
   }
 
-  // ── UI helpers ──────────────────────────────────────────────────
-  function setLoading(on) {
-    document.getElementById('loader').style.display = on ? 'flex' : 'none';
-    document.getElementById('search-btn').disabled = on;
+  function finishSearch(es) {
+    es.close();
+    activeSource = null;
+    document.getElementById('search-btn').disabled = false;
   }
 
-  function hideResults() { document.getElementById('results').style.display = 'none'; }
-  function hideError()   { document.getElementById('error-box').style.display = 'none'; }
-
-  function showError(msg) {
-    const el = document.getElementById('error-box');
-    el.textContent = '✕  ' + msg;
-    el.style.display = 'block';
-  }
-
-  function toggleCard(id) {
-    document.getElementById(id).classList.toggle('collapsed');
-  }
-
-  // ── Render ──────────────────────────────────────────────────────
+  // ── Render results ───────────────────────────────────────────────
   function renderResults(d) {
-    // Query bar
     const isEmail = d.email_meta !== null;
+
     document.getElementById('query-bar').innerHTML = `
       <span>Query:</span>
       <strong>${esc(d.query)}</strong>
@@ -686,7 +604,6 @@
       </span>
     `;
 
-    // Stats
     document.getElementById('stats-row').innerHTML = `
       <div class="stat-card"><div class="stat-num">${d.profiles_found.length}</div><div class="stat-label">Profiles Found</div></div>
       <div class="stat-card"><div class="stat-num">${d.ranked_sources.length}</div><div class="stat-label">Sources Scraped</div></div>
@@ -707,8 +624,8 @@
     if (d.email_meta) {
       document.getElementById('card-email').style.display = '';
       const m = d.email_meta;
-      const typeColor = m.account_type === 'personal' ? 'badge-blue'
-                      : m.account_type === 'corporate' ? 'badge-green' : 'badge-purple';
+      const tc = m.account_type === 'personal' ? 'badge-blue'
+               : m.account_type === 'corporate' ? 'badge-green' : 'badge-purple';
       document.getElementById('body-email').innerHTML = `
         <div class="meta-grid">
           <div class="meta-item"><div class="meta-key">Email</div><div class="meta-val">${esc(m.email)}</div></div>
@@ -717,134 +634,114 @@
           <div class="meta-item"><div class="meta-key">Provider</div><div class="meta-val">${esc(m.provider)}</div></div>
           <div class="meta-item"><div class="meta-key">Domain</div><div class="meta-val">${esc(m.domain)}</div></div>
           <div class="meta-item"><div class="meta-key">Account Type</div>
-            <div class="meta-val"><span class="badge ${typeColor}">${esc(m.account_type)}</span></div>
+            <div class="meta-val"><span class="badge ${tc}">${esc(m.account_type)}</span></div>
           </div>
-        </div>
-      `;
+        </div>`;
     } else {
       document.getElementById('card-email').style.display = 'none';
     }
 
     // Insights
-    if (d.insights.length) {
-      document.getElementById('body-insights').innerHTML = `
-        <ul class="insight-list">
-          ${d.insights.map(i => `
-            <li class="insight-item">
-              <span class="insight-dot">✓</span>
-              <span>${esc(i)}</span>
-            </li>`).join('')}
-        </ul>`;
-    }
+    document.getElementById('body-insights').innerHTML = d.insights.length
+      ? `<ul class="insight-list">${d.insights.map(i =>
+          `<li class="insight-item"><span class="insight-dot">✓</span><span>${esc(i)}</span></li>`
+        ).join('')}</ul>`
+      : `<p style="color:var(--muted);font-size:14px">No insights generated.</p>`;
 
     // Profiles
-    if (d.profiles_found.length) {
-      document.getElementById('body-profiles').innerHTML = `
-        <ul class="profile-list">
-          ${d.profiles_found.map(url => `
-            <li class="profile-item">
-              <img class="profile-favicon"
-                src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(url)}&sz=16"
-                onerror="this.style.display='none'"
-              />
-              <a href="${esc(url)}" target="_blank">${esc(url)}</a>
-            </li>`).join('')}
-        </ul>`;
-    } else {
-      document.getElementById('body-profiles').innerHTML =
-        `<p style="color:var(--muted);font-size:14px">No definitive profile pages identified.</p>`;
-    }
+    document.getElementById('body-profiles').innerHTML = d.profiles_found.length
+      ? `<ul class="profile-list">${d.profiles_found.map(url =>
+          `<li class="profile-item">
+            <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(url)}&sz=16"
+                 width="16" height="16" onerror="this.style.display='none'" />
+            <a href="${esc(url)}" target="_blank">${esc(url)}</a>
+          </li>`).join('')}</ul>`
+      : `<p style="color:var(--muted);font-size:14px">No definitive profile pages identified.</p>`;
 
     // Entities
-    document.getElementById('body-entities').innerHTML = `
-      <div class="entity-list">
-        ${d.entities.map(e => {
-          const cls = e.confidence >= 75 ? 'high' : e.confidence >= 50 ? 'mid' : 'low';
-          const pillCls = e.confidence >= 75 ? 'conf-high' : e.confidence >= 50 ? 'conf-mid' : 'conf-low';
-          return `
-          <div class="entity-item">
-            <div class="entity-header">
-              <span class="entity-id">${esc(e.id.replace('_',' ').replace(/\b\w/g,c=>c.toUpperCase()))}</span>
-              <span class="conf-pill ${pillCls}">${e.confidence}% confidence</span>
-            </div>
-            <div class="conf-bar-wrap">
-              <div class="conf-bar ${cls}" style="width:${e.confidence}%"></div>
-            </div>
-            <div class="entity-sources">
-              ${e.sources.map(s => `
-                <div class="entity-src">
-                  <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(s)}&sz=12"
-                       width="12" height="12" onerror="this.style.display='none'" />
-                  <a href="${esc(s)}" target="_blank">${esc(shortUrl(s))}</a>
-                </div>`).join('')}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>`;
+    document.getElementById('body-entities').innerHTML =
+      `<div class="entity-list">${d.entities.map(e => {
+        const cls = e.confidence >= 75 ? 'high' : e.confidence >= 50 ? 'mid' : 'low';
+        return `
+        <div class="entity-item">
+          <div class="entity-header">
+            <span class="entity-id">${esc(e.id.replace('_',' ').replace(/\b\w/g,c=>c.toUpperCase()))}</span>
+            <span class="conf-pill conf-${cls}">${e.confidence}% confidence</span>
+          </div>
+          <div class="conf-bar-wrap">
+            <div class="conf-bar ${cls}" style="width:${e.confidence}%"></div>
+          </div>
+          <div class="entity-sources">
+            ${e.sources.map(s =>
+              `<div class="entity-src">
+                <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(s)}&sz=12"
+                     width="12" height="12" onerror="this.style.display='none'" />
+                <a href="${esc(s)}" target="_blank">${esc(shortUrl(s))}</a>
+              </div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}</div>`;
 
     // Sources table
     document.getElementById('body-sources').innerHTML = `
       <table class="sources-table">
-        <thead>
-          <tr>
-            <th>Source</th>
-            <th>Credibility</th>
-            <th>Score</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${d.ranked_sources.map(s => {
-            const pct = Math.round(s.credibility_score * 100);
-            const color = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--red)';
-            return `
-            <tr>
-              <td class="url-cell">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(s.url)}&sz=14"
-                       width="14" height="14" onerror="this.style.display='none'" />
-                  <a href="${esc(s.url)}" target="_blank">${esc(shortUrl(s.url))}</a>
+        <thead><tr><th>Source</th><th>Score</th><th>Value</th></tr></thead>
+        <tbody>${d.ranked_sources.map(s => {
+          const pct   = Math.round(s.credibility_score * 100);
+          const color = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--red)';
+          return `<tr>
+            <td class="url-cell">
+              <div style="display:flex;align-items:center;gap:8px">
+                <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(s.url)}&sz=14"
+                     width="14" height="14" onerror="this.style.display='none'" />
+                <a href="${esc(s.url)}" target="_blank">${esc(shortUrl(s.url))}</a>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-mini-bar">
+                  <div class="score-mini-fill" style="width:${pct}%;background:${color}"></div>
                 </div>
-              </td>
-              <td>
-                <div class="score-bar-wrap">
-                  <div class="score-mini-bar">
-                    <div class="score-mini-fill" style="width:${pct}%;background:${color}"></div>
-                  </div>
-                </div>
-              </td>
-              <td style="color:${color};font-weight:600;font-size:13px">${s.credibility_score.toFixed(2)}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
+              </div>
+            </td>
+            <td style="color:${color};font-weight:600;font-size:13px">${s.credibility_score.toFixed(2)}</td>
+          </tr>`;
+        }).join('')}</tbody>
       </table>`;
 
     document.getElementById('results').style.display = 'block';
     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────
   function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   function shortUrl(url) {
-    try { return new URL(url).hostname.replace('www.','') + new URL(url).pathname.slice(0,40); }
-    catch { return url.slice(0,60); }
+    try {
+      const u = new URL(url);
+      return u.hostname.replace('www.','') + u.pathname.slice(0, 40);
+    } catch { return url.slice(0, 55); }
   }
 
   function topConf(entities) {
-    if (!entities.length) return 0;
-    return Math.max(...entities.map(e => e.confidence));
+    return entities.length ? Math.max(...entities.map(e => e.confidence)) : 0;
+  }
+
+  function toggleCard(id) {
+    document.getElementById(id).classList.toggle('collapsed');
   }
 
   function copyJSON() {
     if (!lastResult) return;
-    navigator.clipboard.writeText(JSON.stringify(lastResult, null, 2))
-      .then(() => {
-        const btn = document.querySelector('.copy-btn');
-        btn.textContent = '✓ Copied!';
-        setTimeout(() => btn.innerHTML = '⧉ Copy raw JSON', 2000);
-      });
+    navigator.clipboard.writeText(JSON.stringify(lastResult, null, 2)).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.innerHTML = '⧉ Copy raw JSON', 2000);
+    });
   }
 </script>
 </body>
