@@ -405,10 +405,13 @@
       placeholder="Elon Musk  /  gitgurudev  /  john@gmail.com" autocomplete="off" />
     <button id="search-btn" class="btn" onclick="runSearch()">Analyze</button>
   </div>
-  <div class="hints">
+  <div class="hints" id="default-hints">
     <span class="hint-chip" onclick="fillQuery('Elon Musk')">Elon Musk</span>
     <span class="hint-chip" onclick="fillQuery('Satya Nadella')">Satya Nadella</span>
     <span class="hint-chip" onclick="fillQuery('gitgurudev')">gitgurudev</span>
+  </div>
+  <div id="history-row" style="display:none;justify-content:center;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:11px;color:var(--muted)">Recent:</span>
   </div>
 </section>
 
@@ -418,6 +421,7 @@
     <div class="pipeline-header">
       <div class="spinner-sm" id="pipeline-spinner"></div>
       <span id="pipeline-title">Running pipeline...</span>
+      <span id="pipeline-timer" style="margin-left:auto;font-size:12px;color:var(--muted);font-family:monospace"></span>
     </div>
     <ul class="steps" id="steps-list">
       <li class="step" id="step-holehe">
@@ -592,8 +596,63 @@
 <footer>OSINT AI v7.0 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
 
 <script>
-  let lastResult = null;
+  let lastResult   = null;
   let activeSource = null;
+  let _timerStart  = null;
+  let _timerTick   = null;
+
+  // ── Search history (localStorage) ───────────────────────────────
+  const HISTORY_KEY = 'osint_history';
+  const HISTORY_MAX = 5;
+
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+    catch { return []; }
+  }
+
+  function saveToHistory(query) {
+    let h = loadHistory().filter(q => q !== query);
+    h.unshift(query);
+    h = h.slice(0, HISTORY_MAX);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const h   = loadHistory();
+    const row = document.getElementById('history-row');
+    if (!h.length) { row.style.display = 'none'; return; }
+    row.style.display = 'flex';
+    // keep the "Recent:" label (first child), replace the rest
+    while (row.children.length > 1) row.removeChild(row.lastChild);
+    h.forEach(q => {
+      const chip = document.createElement('span');
+      chip.className   = 'hint-chip';
+      chip.textContent = q.length > 28 ? q.slice(0, 26) + '…' : q;
+      chip.title       = q;
+      chip.onclick     = () => { fillQuery(q); runSearch(); };
+      row.appendChild(chip);
+    });
+  }
+
+  // ── Pipeline timer ───────────────────────────────────────────────
+  function startTimer() {
+    _timerStart = Date.now();
+    const el = document.getElementById('pipeline-timer');
+    el.textContent = '0.0s';
+    _timerTick = setInterval(() => {
+      el.textContent = ((Date.now() - _timerStart) / 1000).toFixed(1) + 's';
+    }, 100);
+  }
+
+  function stopTimer() {
+    clearInterval(_timerTick);
+    _timerTick = null;
+    const elapsed = _timerStart ? ((Date.now() - _timerStart) / 1000).toFixed(1) : null;
+    const el = document.getElementById('pipeline-timer');
+    if (elapsed) el.textContent = elapsed + 's total';
+    return elapsed;
+  }
 
   // ── Health check ────────────────────────────────────────────────
   async function checkHealth() {
@@ -611,6 +670,7 @@
     } catch {}
   }
   checkHealth();
+  renderHistory();
 
   // ── Hint chips / Enter key ───────────────────────────────────────
   function fillQuery(q) {
@@ -673,10 +733,11 @@
     const query = document.getElementById('search-input').value.trim();
     if (!query) return;
 
-    // Close any existing stream
     if (activeSource) { activeSource.close(); activeSource = null; }
+    saveToHistory(query);
 
     document.getElementById('search-btn').disabled = true;
+    startTimer();
     document.getElementById('results').style.display = 'none';
     document.getElementById('error-box').style.display = 'none';
     document.getElementById('pipeline').style.display = 'block';
@@ -759,7 +820,9 @@
 
       else if (d.type === 'result') {
         lastResult = d.data;
-        document.getElementById('pipeline-title').textContent = 'Pipeline complete';
+        const elapsed = stopTimer();
+        document.getElementById('pipeline-title').textContent =
+          'Pipeline complete' + (elapsed ? ' — ' + elapsed + 's' : '');
         document.getElementById('pipeline-spinner').style.display = 'none';
         renderResults(d.data);
         finishSearch(es);
@@ -779,6 +842,7 @@
   function finishSearch(es) {
     es.close();
     activeSource = null;
+    stopTimer();
     document.getElementById('search-btn').disabled = false;
   }
 
