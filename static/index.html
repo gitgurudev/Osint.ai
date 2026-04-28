@@ -375,6 +375,7 @@
       display: flex; align-items: center; gap: 6px;
     }
     .copy-btn:hover { color: var(--primary); border-color: var(--primary); }
+    .new-search-btn { color: var(--primary); border-color: rgba(88,166,255,.35); }
 
     footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 40px; }
 
@@ -588,12 +589,16 @@
     <div class="card-body" id="body-sources"></div>
   </div>
 
-  <div style="display:flex;justify-content:flex-end;margin-top:8px;margin-bottom:40px">
-    <button class="copy-btn" onclick="copyJSON()">⧉ Copy raw JSON</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:40px;flex-wrap:wrap;gap:8px">
+    <button type="button" class="copy-btn new-search-btn" onclick="newSearch()">↑ New Search</button>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="copy-btn" onclick="downloadJSON()">⬇ Download JSON</button>
+      <button type="button" class="copy-btn" onclick="copyJSON()">⧉ Copy raw JSON</button>
+    </div>
   </div>
 </div>
 
-<footer>OSINT AI v7.0 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
+<footer>OSINT AI v8.1 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
 
 <script>
   let lastResult   = null;
@@ -1168,10 +1173,30 @@
   function copyJSON() {
     if (!lastResult) return;
     navigator.clipboard.writeText(JSON.stringify(lastResult, null, 2)).then(() => {
-      const btn = document.querySelector('.copy-btn');
+      const btn = document.querySelector('.copy-btn[onclick="copyJSON()"]');
       btn.textContent = '✓ Copied!';
-      setTimeout(() => btn.innerHTML = '⧉ Copy raw JSON', 2000);
+      setTimeout(() => { btn.textContent = '⧉ Copy raw JSON'; }, 2000);
     });
+  }
+
+  function downloadJSON() {
+    if (!lastResult) return;
+    const blob = new Blob([JSON.stringify(lastResult, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const safe = (lastResult.query || 'report').replace(/[^a-z0-9_\-]/gi, '_').slice(0, 40);
+    a.href     = url;
+    a.download = `osint_${safe}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function newSearch() {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('pipeline').style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('search-input').focus();
   }
 </script>
 </body>

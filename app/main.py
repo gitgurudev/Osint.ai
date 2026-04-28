@@ -1,7 +1,9 @@
 import asyncio
 import json
 import logging
-from fastapi import FastAPI, Query, HTTPException
+import time
+from collections import defaultdict
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from app.core.config import get_settings
@@ -21,10 +23,27 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 
+# ── In-memory rate limiter ────────────────────────────────────────────────────
+_rate_store: dict[str, list[float]] = defaultdict(list)
+RATE_LIMIT   = 5    # max requests
+RATE_WINDOW  = 60   # per N seconds
+
+
+def _check_rate_limit(ip: str) -> bool:
+    """Returns True if the request should be allowed, False if rate-limited."""
+    now = time.time()
+    hits = [t for t in _rate_store[ip] if now - t < RATE_WINDOW]
+    _rate_store[ip] = hits
+    if len(hits) >= RATE_LIMIT:
+        return False
+    _rate_store[ip].append(now)
+    return True
+
+
 app = FastAPI(
     title="OSINT AI — Digital Intelligence Engine",
     description="Accepts name, username, or email. Search -> Holehe -> Scrape -> Analyze -> GPT-4o.",
-    version="7.0.0",
+    version="8.1.0",
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -40,7 +59,7 @@ def health():
     settings = get_settings()
     return {
         "status": "ok",
-        "version": "8.0.0",
+        "version": "8.1.0",
         "llm_enabled": settings.llm_enabled,
         "model": settings.openai_model if settings.llm_enabled else "rule-based only",
         "holehe_platforms": TOTAL_PLATFORMS,
@@ -53,8 +72,15 @@ def _evt(data: dict) -> str:
 
 
 @app.get("/search/stream", tags=["osint"])
-async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
+async def search_stream(request: Request, query: str = Query(..., min_length=2, max_length=200)):
     """SSE endpoint — emits real-time pipeline progress to the UI."""
+
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Max {RATE_LIMIT} requests per {RATE_WINDOW}s.",
+        )
 
     settings = get_settings()
 
@@ -297,8 +323,14 @@ async def search_stream(query: str = Query(..., min_length=2, max_length=200)):
 
 
 @app.get("/search", response_model=OSINTReport, tags=["osint"])
-async def search(query: str = Query(..., min_length=2, max_length=200)):
+async def search(request: Request, query: str = Query(..., min_length=2, max_length=200)):
     """JSON endpoint for API / curl usage."""
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Max {RATE_LIMIT} requests per {RATE_WINDOW}s.",
+        )
     settings        = get_settings()
     email_meta_raw  = parse_email(query) if is_email(query) else None
     confirmed_raw   = await holehe_check(query) if email_meta_raw else []
