@@ -170,7 +170,7 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
-    /* Progress bars (scrape + holehe) */
+    /* Progress bar (scrape) */
     .scrape-bar-wrap {
       margin-top: 6px; background: var(--border);
       border-radius: 3px; height: 4px; overflow: hidden;
@@ -180,86 +180,6 @@
       border-radius: 3px; transition: width .3s ease;
       width: 0%;
     }
-    .holehe-bar-wrap {
-      margin-top: 6px; background: var(--border);
-      border-radius: 3px; height: 4px; overflow: hidden;
-    }
-    .holehe-bar {
-      height: 100%; background: var(--green);
-      border-radius: 3px; transition: width .3s ease;
-      width: 0%;
-    }
-    /* Live found-accounts mini-list during holehe scan */
-    .holehe-live {
-      margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;
-    }
-    .holehe-chip {
-      font-size: 11px; background: rgba(63,185,80,.12);
-      color: var(--green); border: 1px solid rgba(63,185,80,.3);
-      border-radius: 20px; padding: 2px 8px;
-    }
-    /* EmailRep reputation card */
-    .rep-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 8px;
-      margin-bottom: 14px;
-    }
-    .rep-item { background: var(--surface2); border-radius: var(--radius); padding: 10px 12px; }
-    .rep-key  { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
-    .rep-val  { font-size: 14px; font-weight: 700; }
-    .rep-ok   { color: var(--green); }
-    .rep-warn { color: var(--yellow); }
-    .rep-bad  { color: var(--red); }
-    .rep-profiles { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-    .rep-profile-chip {
-      font-size: 12px; padding: 3px 10px; border-radius: 20px;
-      background: rgba(88,166,255,.12); color: var(--primary);
-      border: 1px solid rgba(88,166,255,.25); text-transform: capitalize;
-    }
-
-    /* HIBP breach card */
-    .breach-list { display: flex; flex-direction: column; gap: 10px; }
-    .breach-item {
-      border-radius: var(--radius); padding: 12px 14px;
-      border-left: 3px solid var(--red);
-      background: rgba(248,81,73,.07);
-    }
-    .breach-item.medium {
-      border-left-color: var(--yellow);
-      background: rgba(210,153,34,.07);
-    }
-    .breach-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .breach-title  { font-weight: 700; font-size: 14px; }
-    .breach-meta   { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-    .breach-tags   { display: flex; flex-wrap: wrap; gap: 4px; }
-    .breach-tag {
-      font-size: 11px; padding: 2px 8px; border-radius: 20px;
-      background: rgba(248,81,73,.15); color: var(--red); border: 1px solid rgba(248,81,73,.3);
-    }
-    .breach-tag.safe {
-      background: rgba(210,153,34,.12); color: var(--yellow); border-color: rgba(210,153,34,.3);
-    }
-    .hibp-clean {
-      display: flex; align-items: center; gap: 12px;
-      background: rgba(63,185,80,.08); border: 1px solid rgba(63,185,80,.25);
-      border-radius: var(--radius); padding: 16px;
-    }
-    .hibp-clean-icon { font-size: 28px; }
-    .hibp-clean-text { font-size: 14px; color: var(--green); font-weight: 600; }
-    .hibp-clean-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-    /* Confirmed accounts card */
-    .confirmed-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 8px;
-    }
-    .confirmed-item {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--surface2); border: 1px solid rgba(63,185,80,.25);
-      border-radius: var(--radius); padding: 9px 12px;
-      font-size: 13px;
-    }
-    .confirmed-check { color: var(--green); font-size: 14px; flex-shrink: 0; }
 
     /* ── Error ── */
     #error-box {
@@ -315,11 +235,6 @@
       background: var(--surface2); border-left: 3px solid var(--primary);
       border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 14px;
     }
-
-    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 8px; }
-    .meta-item { background: var(--surface2); border-radius: var(--radius); padding: 10px 12px; }
-    .meta-key  { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
-    .meta-val  { font-size: 14px; font-weight: 600; }
 
     .profile-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
     .profile-item {
@@ -393,17 +308,16 @@
   <div class="tagline">Digital Intelligence Engine</div>
   <div class="header-right">
     <span id="llm-badge" class="badge badge-yellow">Checking...</span>
-    <span id="hibp-badge-header" class="badge badge-yellow">HIBP...</span>
     <a href="/docs" target="_blank" class="badge badge-blue" style="text-decoration:none">API Docs</a>
   </div>
 </header>
 
 <section class="hero">
   <h1>Public Digital Footprint Analyzer</h1>
-  <p>Enter a name, username, or email — get a structured intelligence report in seconds</p>
+  <p>Enter a name or username — get a structured intelligence report in seconds</p>
   <div class="search-wrap">
     <input id="search-input" class="search-input" type="text"
-      placeholder="Elon Musk  /  gitgurudev  /  john@gmail.com" autocomplete="off" />
+      placeholder="Elon Musk  /  gitgurudev" autocomplete="off" />
     <button id="search-btn" class="btn" onclick="runSearch()">Analyze</button>
   </div>
   <div class="hints" id="default-hints">
@@ -425,47 +339,15 @@
       <span id="pipeline-timer" style="margin-left:auto;font-size:12px;color:var(--muted);font-family:monospace"></span>
     </div>
     <ul class="steps" id="steps-list">
-      <li class="step" id="step-holehe">
-        <div class="step-icon">1</div>
-        <div class="step-body">
-          <div class="step-label">Holehe Platform Check</div>
-          <div class="step-detail" id="detail-holehe">Waiting...</div>
-          <div class="holehe-bar-wrap" id="holehe-bar-wrap" style="display:none">
-            <div class="holehe-bar" id="holehe-bar"></div>
-          </div>
-          <div class="holehe-live" id="holehe-live"></div>
-        </div>
-      </li>
-      <li class="step" id="step-google">
-        <div class="step-icon">2</div>
-        <div class="step-body">
-          <div class="step-label">Google Account Lookup</div>
-          <div class="step-detail" id="detail-google">Waiting...</div>
-        </div>
-      </li>
-      <li class="step" id="step-hibp">
-        <div class="step-icon">3</div>
-        <div class="step-body">
-          <div class="step-label">Have I Been Pwned</div>
-          <div class="step-detail" id="detail-hibp">Waiting...</div>
-        </div>
-      </li>
-      <li class="step" id="step-emailrep">
-        <div class="step-icon">4</div>
-        <div class="step-body">
-          <div class="step-label">Email Reputation (EmailRep.io)</div>
-          <div class="step-detail" id="detail-emailrep">Waiting...</div>
-        </div>
-      </li>
       <li class="step" id="step-search">
-        <div class="step-icon">5</div>
+        <div class="step-icon">1</div>
         <div class="step-body">
           <div class="step-label">DuckDuckGo Search</div>
           <div class="step-detail" id="detail-search">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-scrape">
-        <div class="step-icon">6</div>
+        <div class="step-icon">2</div>
         <div class="step-body">
           <div class="step-label">Scraping Pages</div>
           <div class="step-detail" id="detail-scrape">Waiting...</div>
@@ -475,14 +357,14 @@
         </div>
       </li>
       <li class="step" id="step-analyze">
-        <div class="step-icon">7</div>
+        <div class="step-icon">3</div>
         <div class="step-body">
           <div class="step-label">Rule-based Analysis</div>
           <div class="step-detail" id="detail-analyze">Waiting...</div>
         </div>
       </li>
       <li class="step" id="step-llm">
-        <div class="step-icon">8</div>
+        <div class="step-icon">4</div>
         <div class="step-body">
           <div class="step-label">GPT-4o Enhancement</div>
           <div class="step-detail" id="detail-llm">Waiting...</div>
@@ -506,55 +388,6 @@
       <span class="chevron">▾</span>
     </div>
     <div class="card-body" id="body-summary"></div>
-  </div>
-
-  <div class="card" id="card-email">
-    <div class="card-header" onclick="toggleCard('card-email')">
-      <div class="card-title"><span>✉</span> Email Intelligence</div>
-      <span class="chevron">▾</span>
-    </div>
-    <div class="card-body" id="body-email"></div>
-  </div>
-
-  <div class="card" id="card-hibp">
-    <div class="card-header" onclick="toggleCard('card-hibp')">
-      <div class="card-title">
-        <span id="hibp-icon">⚠</span> Data Breach Check
-        <span id="hibp-badge" class="badge" style="margin-left:4px;display:none"></span>
-      </div>
-      <span class="chevron">▾</span>
-    </div>
-    <div class="card-body" id="body-hibp"></div>
-  </div>
-
-  <div class="card" id="card-emailrep">
-    <div class="card-header" onclick="toggleCard('card-emailrep')">
-      <div class="card-title">
-        <span>⚡</span> Email Reputation
-        <span id="emailrep-badge" class="badge" style="margin-left:4px;display:none"></span>
-      </div>
-      <span class="chevron">▾</span>
-    </div>
-    <div class="card-body" id="body-emailrep"></div>
-  </div>
-
-  <div class="card" id="card-confirmed">
-    <div class="card-header" onclick="toggleCard('card-confirmed')">
-      <div class="card-title"><span>✔</span> Confirmed Accounts <span id="confirmed-badge" class="badge badge-green" style="margin-left:4px;display:none"></span></div>
-      <span class="chevron">▾</span>
-    </div>
-    <div class="card-body" id="body-confirmed"></div>
-  </div>
-
-  <div class="card" id="card-google">
-    <div class="card-header" onclick="toggleCard('card-google')">
-      <div class="card-title">
-        <img src="https://www.google.com/favicon.ico" width="14" height="14" style="border-radius:2px" />
-        Google Footprint
-      </div>
-      <span class="chevron">▾</span>
-    </div>
-    <div class="card-body" id="body-google"></div>
   </div>
 
   <div class="card" id="card-insights">
@@ -598,7 +431,7 @@
   </div>
 </div>
 
-<footer>OSINT AI v8.1 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
+<footer>OSINT AI v9.0.0 &nbsp;·&nbsp; <a href="/docs">API</a></footer>
 
 <script>
   let lastResult   = null;
@@ -628,7 +461,6 @@
     const row = document.getElementById('history-row');
     if (!h.length) { row.style.display = 'none'; return; }
     row.style.display = 'flex';
-    // keep the "Recent:" label (first child), replace the rest
     while (row.children.length > 1) row.removeChild(row.lastChild);
     h.forEach(q => {
       const chip = document.createElement('span');
@@ -667,11 +499,6 @@
       const el = document.getElementById('llm-badge');
       el.textContent = d.llm_enabled ? 'GPT-4o ON' : 'Rule-based';
       el.className   = 'badge ' + (d.llm_enabled ? 'badge-green' : 'badge-yellow');
-      const hibpEl = document.getElementById('hibp-badge-header');
-      if (hibpEl) {
-        hibpEl.textContent = d.hibp_enabled ? 'HIBP ON' : 'HIBP OFF';
-        hibpEl.className   = 'badge ' + (d.hibp_enabled ? 'badge-green' : 'badge-red');
-      }
     } catch {}
   }
   checkHealth();
@@ -688,16 +515,13 @@
 
   // ── Reset pipeline UI ────────────────────────────────────────────
   function resetPipeline() {
-    ['holehe','google','hibp','emailrep','search','scrape','analyze','llm'].forEach(s => {
+    ['search','scrape','analyze','llm'].forEach(s => {
       const el = document.getElementById('step-' + s);
       el.className = 'step';
       document.getElementById('detail-' + s).textContent = 'Waiting...';
     });
     document.getElementById('scrape-bar-wrap').style.display = 'none';
     document.getElementById('scrape-bar').style.width = '0%';
-    document.getElementById('holehe-bar-wrap').style.display = 'none';
-    document.getElementById('holehe-bar').style.width = '0%';
-    document.getElementById('holehe-live').innerHTML = '';
     document.getElementById('pipeline-title').textContent = 'Running pipeline...';
     document.getElementById('pipeline-spinner').style.display = '';
   }
@@ -761,9 +585,6 @@
         if (d.stage === 'scrape' && d.total) {
           document.getElementById('scrape-bar-wrap').style.display = 'block';
         }
-        if (d.stage === 'holehe' && d.total) {
-          document.getElementById('holehe-bar-wrap').style.display = 'block';
-        }
       }
 
       else if (d.type === 'stage_done') {
@@ -772,33 +593,6 @@
 
       else if (d.type === 'stage_skip') {
         setStepSkip(d.stage, d.message);
-      }
-
-      else if (d.type === 'holehe_progress') {
-        const pct = Math.round((d.checked / d.total) * 100);
-        document.getElementById('holehe-bar').style.width = pct + '%';
-        document.getElementById('detail-holehe').textContent =
-          `${d.checked}/${d.total} checked · ${d.found} found`;
-        if (d.latest && d.latest.length) {
-          const live = document.getElementById('holehe-live');
-          d.latest.forEach(name => {
-            if (!document.querySelector(`.holehe-chip[data-name="${CSS.escape(name)}"]`)) {
-              const chip = document.createElement('span');
-              chip.className = 'holehe-chip';
-              chip.dataset.name = name;
-              chip.textContent = name;
-              live.appendChild(chip);
-            }
-          });
-        }
-      }
-
-      else if (d.type === 'confirmed_account') {
-        // final list rendered from result event
-      }
-
-      else if (d.type === 'email_detected') {
-        // no UI action needed — pipeline steps handle it
       }
 
       else if (d.type === 'scrape_progress') {
@@ -810,7 +604,7 @@
       }
 
       else if (d.type === 'error') {
-        ['holehe','google','hibp','emailrep','search','scrape','analyze','llm'].forEach(s => {
+        ['search','scrape','analyze','llm'].forEach(s => {
           if (document.getElementById('step-'+s).classList.contains('active')) {
             setStepError(s, d.message);
           }
@@ -853,22 +647,16 @@
 
   // ── Render results ───────────────────────────────────────────────
   function renderResults(d) {
-    const isEmail = d.email_meta !== null;
-
     document.getElementById('query-bar').innerHTML = `
       <span>Query:</span>
       <strong>${esc(d.query)}</strong>
-      <span class="badge ${isEmail ? 'badge-purple' : 'badge-blue'}">${isEmail ? 'Email' : 'Name / Username'}</span>
+      <span class="badge badge-blue">Name / Username</span>
       <span class="badge ${d.llm_enhanced ? 'badge-green' : 'badge-yellow'}">
         ${d.llm_enhanced ? 'GPT-4o Enhanced' : 'Rule-based'}
       </span>
     `;
 
-    const confirmedCount = (d.confirmed_accounts || []).length;
-    const statsHtml = confirmedCount > 0
-      ? `<div class="stat-card"><div class="stat-num" style="color:var(--green)">${confirmedCount}</div><div class="stat-label">Confirmed Accounts</div></div>` : '';
     document.getElementById('stats-row').innerHTML = `
-      ${statsHtml}
       <div class="stat-card"><div class="stat-num">${d.profiles_found.length}</div><div class="stat-label">Profiles Found</div></div>
       <div class="stat-card"><div class="stat-num">${d.ranked_sources.length}</div><div class="stat-label">Sources Scraped</div></div>
       <div class="stat-card"><div class="stat-num">${d.entities.length}</div><div class="stat-label">Identity Clusters</div></div>
@@ -882,198 +670,6 @@
         `<div class="summary-text">${esc(d.summary)}</div>`;
     } else {
       document.getElementById('card-summary').style.display = 'none';
-    }
-
-    // Email meta
-    if (d.email_meta) {
-      document.getElementById('card-email').style.display = '';
-      const m = d.email_meta;
-      const tc = m.account_type === 'personal' ? 'badge-blue'
-               : m.account_type === 'corporate' ? 'badge-green' : 'badge-purple';
-      document.getElementById('body-email').innerHTML = `
-        <div class="meta-grid">
-          <div class="meta-item"><div class="meta-key">Email</div><div class="meta-val">${esc(m.email)}</div></div>
-          <div class="meta-item"><div class="meta-key">Probable Name</div><div class="meta-val">${esc(m.name_guess)}</div></div>
-          <div class="meta-item"><div class="meta-key">Username</div><div class="meta-val">${esc(m.username)}</div></div>
-          <div class="meta-item"><div class="meta-key">Provider</div><div class="meta-val">${esc(m.provider)}</div></div>
-          <div class="meta-item"><div class="meta-key">Domain</div><div class="meta-val">${esc(m.domain)}</div></div>
-          <div class="meta-item"><div class="meta-key">Account Type</div>
-            <div class="meta-val"><span class="badge ${tc}">${esc(m.account_type)}</span></div>
-          </div>
-        </div>`;
-    } else {
-      document.getElementById('card-email').style.display = 'none';
-    }
-
-    // EmailRep reputation
-    const er = d.emailrep_result;
-    if (er && er.ok) {
-      document.getElementById('card-emailrep').style.display = '';
-      const erBadge = document.getElementById('emailrep-badge');
-      const repColor = er.reputation === 'high' ? 'badge-green'
-                     : er.reputation === 'medium' ? 'badge-yellow'
-                     : 'badge-red';
-      erBadge.textContent = er.reputation + ' reputation';
-      erBadge.className   = 'badge ' + repColor;
-      erBadge.style.display = '';
-
-      const boolRow = (label, val, goodWhenTrue) => {
-        const cls = val === goodWhenTrue ? 'rep-ok' : (val ? 'rep-bad' : 'rep-warn');
-        return `<div class="rep-item">
-          <div class="rep-key">${label}</div>
-          <div class="rep-val ${cls}">${val ? 'Yes' : 'No'}</div>
-        </div>`;
-      };
-
-      document.getElementById('body-emailrep').innerHTML = `
-        <div class="rep-grid">
-          <div class="rep-item">
-            <div class="rep-key">Reputation</div>
-            <div class="rep-val ${repColor.replace('badge-','rep-').replace('green','ok').replace('yellow','warn').replace('blue','ok')}">${er.reputation.toUpperCase()}</div>
-          </div>
-          <div class="rep-item">
-            <div class="rep-key">References on web</div>
-            <div class="rep-val">${er.references.toLocaleString()}</div>
-          </div>
-          ${er.first_seen ? `<div class="rep-item"><div class="rep-key">First Seen</div><div class="rep-val">${esc(er.first_seen)}</div></div>` : ''}
-          ${er.last_seen  ? `<div class="rep-item"><div class="rep-key">Last Seen</div><div class="rep-val">${esc(er.last_seen)}</div></div>` : ''}
-          ${boolRow('Credentials Leaked', er.credentials_leaked, false)}
-          ${boolRow('In Data Breach', er.data_breach, false)}
-          ${boolRow('Blacklisted', er.blacklisted, false)}
-          ${boolRow('Spam', er.spam, false)}
-          ${boolRow('Deliverable', er.deliverable, true)}
-          ${er.credentials_leaked_recent ? `<div class="rep-item">
-            <div class="rep-key">Recent Leak</div>
-            <div class="rep-val rep-bad">YES — Recent!</div>
-          </div>` : ''}
-        </div>
-        ${er.profiles.length ? `
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Known profiles detected by EmailRep:</div>
-          <div class="rep-profiles">${er.profiles.map(p =>
-            `<span class="rep-profile-chip">${esc(p)}</span>`
-          ).join('')}</div>` : ''}
-        <p style="font-size:11px;color:var(--muted);margin-top:10px">
-          Source: <a href="https://emailrep.io" target="_blank">emailrep.io</a> — free tier (no key required)
-        </p>`;
-    } else {
-      document.getElementById('card-emailrep').style.display = 'none';
-    }
-
-    // HIBP breach check
-    const hibp = d.hibp_result;
-    if (hibp) {
-      document.getElementById('card-hibp').style.display = '';
-      const badge  = document.getElementById('hibp-badge');
-      const icon   = document.getElementById('hibp-icon');
-      if (hibp.found) {
-        const hasHigh = hibp.breaches.some(b => b.severity === 'high');
-        badge.textContent = hibp.count + (hibp.count === 1 ? ' breach' : ' breaches');
-        badge.className   = 'badge ' + (hasHigh ? 'badge-red' : 'badge-yellow');
-        badge.style.display = '';
-        icon.textContent  = '🔓';
-        document.getElementById('body-hibp').innerHTML = `
-          <p style="font-size:13px;color:var(--muted);margin-bottom:12px">
-            This email was found in <strong style="color:var(--red)">${hibp.count}</strong> known data breach${hibp.count > 1 ? 'es' : ''}.
-            Change passwords on affected services immediately.
-          </p>
-          <div class="breach-list">${hibp.breaches.map(b => {
-            const isHigh = b.severity === 'high';
-            const pwnFmt = b.pwn_count >= 1e6
-              ? (b.pwn_count / 1e6).toFixed(1) + 'M'
-              : b.pwn_count >= 1e3
-              ? Math.round(b.pwn_count / 1e3) + 'K'
-              : b.pwn_count.toString();
-            return `
-            <div class="breach-item ${isHigh ? '' : 'medium'}">
-              <div class="breach-header">
-                <div style="display:flex;align-items:center;gap:8px">
-                  ${b.domain ? `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(b.domain)}&sz=16"
-                    width="16" height="16" onerror="this.style.display='none'" />` : ''}
-                  <span class="breach-title">${esc(b.title || b.name)}</span>
-                </div>
-                <span class="badge ${isHigh ? 'badge-red' : 'badge-yellow'}">${isHigh ? 'HIGH' : 'MEDIUM'}</span>
-              </div>
-              <div class="breach-meta">
-                ${b.domain ? `${esc(b.domain)} &nbsp;·&nbsp; ` : ''}
-                Breached <strong>${esc(b.breach_date)}</strong>
-                &nbsp;·&nbsp; ${pwnFmt} accounts affected
-                ${b.is_verified ? '' : ' &nbsp;·&nbsp; <em>unverified</em>'}
-              </div>
-              <div class="breach-tags">${b.data_classes.map(dc => {
-                const isPasswordClass = ['Passwords','Password hints','Credit cards',
-                  'Bank account numbers','Social security numbers'].includes(dc);
-                return `<span class="breach-tag ${isPasswordClass ? '' : 'safe'}">${esc(dc)}</span>`;
-              }).join('')}</div>
-            </div>`;
-          }).join('')}</div>`;
-      } else if (hibp.ok) {
-        icon.textContent = '✓';
-        badge.style.display = 'none';
-        document.getElementById('body-hibp').innerHTML = `
-          <div class="hibp-clean">
-            <div class="hibp-clean-icon">🔒</div>
-            <div>
-              <div class="hibp-clean-text">No breaches found</div>
-              <div class="hibp-clean-sub">This email does not appear in any known data breaches.</div>
-            </div>
-          </div>`;
-      } else {
-        document.getElementById('card-hibp').style.display = 'none';
-      }
-    } else {
-      document.getElementById('card-hibp').style.display = 'none';
-    }
-
-    // Google footprint
-    const gf = d.google_footprint;
-    if (gf && gf.found) {
-      document.getElementById('card-google').style.display = '';
-      document.getElementById('body-google').innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="background:var(--surface2);border:1px solid rgba(88,166,255,.2);border-radius:var(--radius);padding:12px 14px">
-            <div style="font-size:12px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Google Account ID</div>
-            <div style="font-family:monospace;font-size:14px;color:var(--primary)">${esc(gf.user_id)}</div>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <a href="${esc(gf.maps_url)}" target="_blank" style="display:flex;align-items:center;gap:8px;
-               background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);border-radius:var(--radius);
-               padding:10px 14px;color:var(--green);font-size:14px;font-weight:600;text-decoration:none">
-              <span>📍</span> Google Maps Reviews
-            </a>
-            <a href="${esc(gf.photos_url)}" target="_blank" style="display:flex;align-items:center;gap:8px;
-               background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.3);border-radius:var(--radius);
-               padding:10px 14px;color:var(--primary);font-size:14px;font-weight:600;text-decoration:none">
-              <span>🖼</span> Google Maps Photos
-            </a>
-          </div>
-          <p style="font-size:12px;color:var(--muted)">
-            These links show the public Google Maps activity tied to this Google account.
-          </p>
-        </div>`;
-    } else {
-      document.getElementById('card-google').style.display = 'none';
-    }
-
-    // Confirmed accounts (holehe)
-    const accounts = d.confirmed_accounts || [];
-    if (accounts.length) {
-      document.getElementById('card-confirmed').style.display = '';
-      const badge = document.getElementById('confirmed-badge');
-      badge.textContent = accounts.length + ' platforms';
-      badge.style.display = '';
-      document.getElementById('body-confirmed').innerHTML =
-        `<div class="confirmed-grid">${accounts.map(a => `
-          <div class="confirmed-item">
-            <span class="confirmed-check">✔</span>
-            <img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(a.domain)}&sz=16"
-                 width="16" height="16" onerror="this.style.display='none'" />
-            <div>
-              <div style="font-weight:600">${esc(a.name)}</div>
-              <div style="font-size:11px;color:var(--muted)">${esc(a.domain)}</div>
-            </div>
-          </div>`).join('')}</div>`;
-    } else {
-      document.getElementById('card-confirmed').style.display = 'none';
     }
 
     // Insights
